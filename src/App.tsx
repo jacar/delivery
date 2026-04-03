@@ -102,16 +102,6 @@ export default function App() {
           <main className="w-full overflow-hidden">
             <HomeInformativo onStart={() => setShowLogin(true)} />
           </main>
-          <footer className="bg-gray-900 py-20 px-6 lg:px-10 mt-20">
-            <div className="max-w-7xl mx-auto flex flex-col items-center gap-8">
-              <img src="https://www.webcincodev.com/blog/wp-content/uploads/2026/03/bg-800-x-800-px-1.png" alt="Logo" className="h-12 w-auto grayscale brightness-200" />
-              <div className="flex gap-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                <button onClick={() => openLegal('terms')}>Términos</button>
-                <button onClick={() => openLegal('privacy')}>Privacidad</button>
-              </div>
-              <p className="text-gray-600 text-[10px] font-bold uppercase tracking-widest">© 2026 DeliveryExpress Menegrande</p>
-            </div>
-          </footer>
           {showLegal && (
             <LegalModal isOpen={showLegal} onClose={() => setShowLegal(false)} initialTab={legalTab} />
           )}

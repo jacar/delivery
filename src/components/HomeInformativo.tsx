@@ -35,6 +35,15 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
   const [direccion, setDireccion] = useState('');
   const [localUser, setLocalUser] = useState<{uid: string, nombre: string, telefono: string} | null>(null);
 
+  // Estados para Registro de Aliados (WhatsApp)
+  const [allyModal, setAllyModal] = useState<'restaurante' | 'comercio' | null>(null);
+  const [allyNombre, setAllyNombre] = useState('');
+  const [allyTipo, setAllyTipo] = useState('');
+  const [allyDireccion, setAllyDireccion] = useState('');
+  const [allyMovil, setAllyMovil] = useState('');
+  const [allyEmail, setAllyEmail] = useState('');
+  const [allyError, setAllyError] = useState(false);
+
   const effectiveUser = userData || localUser;
   const [cart, setCart] = useState<Record<string, number>>({});
 
@@ -128,6 +137,40 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
     setCart({});
   };
 
+  const handleAllySubmit = () => {
+    setAllyError(false);
+    if (!allyNombre || !allyTipo || !allyDireccion || !allyMovil) {
+      setAllyError(true);
+      toast.error("Por favor completa los campos obligatorios.");
+      return;
+    }
+
+    const title = allyModal === 'restaurante' ? 'REGISTRO DE RESTAURANTE' : 'REGISTRO DE COMERCIO';
+    const labelTipo = allyModal === 'restaurante' ? 'Tipo de comida' : 'Giro del negocio';
+    
+    // MENSAJE EN TEXTO PLANO SIN EMOJIS
+    const message = `${title}
+--------------------------
+Nombre: ${allyNombre.toUpperCase()}
+${labelTipo}: ${allyTipo.toUpperCase()}
+Direccion: ${allyDireccion}
+Movil: +58 ${allyMovil}
+Email: ${allyEmail || 'NO REGISTRADO'}
+--------------------------
+Estado: SOLICITUD DE ALTA`;
+
+    const encodedMsg = encodeURIComponent(message);
+    window.open(`https://wa.me/584120688703?text=${encodedMsg}`, '_blank');
+    
+    // Limpiar campos y cerrar
+    setAllyModal(null);
+    setAllyNombre('');
+    setAllyTipo('');
+    setAllyDireccion('');
+    setAllyMovil('');
+    setAllyEmail('');
+  };
+
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
@@ -210,8 +253,25 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
         )}
       </AnimatePresence>
 
-      {/* HERO SECTION */}
-      <section className="relative pt-24 pb-12 lg:pt-56 lg:pb-32 overflow-hidden bg-gradient-to-b from-gray-50 to-white">
+      {/* NUEVA SECCIÓN DE BANNER GRÁFICO (TOP - ANCHO COMPLETO) */}
+      <section className="pt-16 lg:pt-24 pb-0 bg-white overflow-hidden">
+        <div className="w-full">
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }}
+            className="w-full relative shadow-lg"
+          >
+            <img 
+              src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/Te-hacemos-la-Llegamos-en-minutos.-El-delivery-mas-rapido-de-Mene-Grande-directamente-a-tu-puerta.-vida-mas-facil-2.svg" 
+              alt="Promo DeliveryExpress" 
+              className="w-full h-auto block"
+            />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* HERO SECTION ORIGINAL (RESTAURADA) */}
+      <section className="relative pt-12 pb-12 lg:pt-20 lg:pb-32 overflow-hidden bg-gradient-to-b from-white to-gray-50">
         <div className="container mx-auto px-6 lg:px-10 flex flex-col lg:flex-row items-center gap-16 lg:gap-24 relative z-10">
           
           {/* TEXTO IZQUIERDA */}
@@ -262,18 +322,18 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
                 <div className="flex -space-x-3">
                   {[1, 2, 3].map(i => (
                     <div key={i} className="w-10 h-10 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-sm">
-                      <div className="w-full h-full bg-orange-100 flex items-center justify-center text-orange-600 text-[10px] font-black">USER</div>
+                      <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i+10}`} alt="user" className="w-full h-full" />
                     </div>
                   ))}
                 </div>
-                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-left">
                   +50k usuarios ya disfrutan la <span className="text-orange-600">entrega ultra-rápida</span>
                 </div>
               </div>
             </motion.div>
           </div>
 
-          {/* IMAGEN DERECHA (bg.png) */}
+          {/* IMAGEN DERECHA (Hero Moto) */}
           <div className="flex-1 relative w-full max-w-2xl">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, rotate: 2 }} 
@@ -321,10 +381,6 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
                 </div>
               </motion.div>
             </motion.div>
-
-            {/* ELEMENTOS DECORATIVOS */}
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-orange-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" />
-            <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse delay-700" />
           </div>
         </div>
       </section>
@@ -391,15 +447,15 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
             {aliados.map((aliado) => (
               <motion.div 
                 key={aliado.id} 
                 whileHover={{ y: -10, scale: 1.02 }} 
                 onClick={() => { setSelectedAliado(aliado); setCheckoutStep('menu'); }}
-                className="group cursor-pointer bg-white/70 backdrop-blur-md p-8 rounded-[3.5rem] border border-white shadow-[0_20px_50px_rgba(0,0,0,0.04)] hover:shadow-2xl transition-all relative overflow-hidden"
+                className="group cursor-pointer bg-white/70 backdrop-blur-md p-4 sm:p-8 rounded-[2.5rem] sm:rounded-[3.5rem] border border-white shadow-[0_20px_50px_rgba(0,0,0,0.04)] hover:shadow-2xl transition-all relative overflow-hidden"
               >
-                <div className="aspect-square w-full max-w-[200px] mx-auto mb-8 rounded-[3rem] overflow-hidden shadow-xl group-hover:scale-105 transition-transform duration-500 bg-gray-50 border-4 border-white">
+                <div className="aspect-square w-full max-w-[140px] sm:max-w-[200px] mx-auto mb-4 sm:mb-8 rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-xl group-hover:scale-105 transition-transform duration-500 bg-gray-50 border-4 border-white">
                   <img 
                     src={aliado.logoUrl} 
                     alt={aliado.nombre} 
@@ -408,12 +464,14 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
                     decoding="async" 
                   />
                 </div>
-                <div className="text-center space-y-4">
-                  <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter truncate">{aliado.nombre}</h3>
-                  <p className="text-xs font-medium text-gray-400 line-clamp-2 leading-relaxed h-8">{aliado.descripcion || 'Especialidades locales seleccionadas'}</p>
-                  <div className="pt-4 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                <div className="text-center space-y-2 sm:space-y-4">
+                  <h3 className="text-xs sm:text-2xl font-black text-gray-900 uppercase tracking-tighter truncate">{aliado.nombre}</h3>
+                  <p className="text-[10px] sm:text-xs font-medium text-gray-400 line-clamp-1 sm:line-clamp-2 leading-tight sm:leading-relaxed h-4 sm:h-8">
+                    {aliado.descripcion || 'Especialidades locales'}
+                  </p>
+                  <div className="pt-2 sm:pt-4 opacity-0 sm:group-hover:opacity-100 transition-all">
                     <span className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] flex items-center justify-center gap-2">
-                       Ver Menú <ArrowRight size={14} />
+                       VER <span className="hidden sm:inline">MENÚ</span> <ArrowRight size={14} />
                     </span>
                   </div>
                 </div>
@@ -423,11 +481,12 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
         </div>
       </section>
 
-      {/* SERVICIOS SECTION */}
-      <section id="servicios" className="py-16 lg:py-32 bg-white">
+      {/* SECCIÓN SERVICIOS CON BANNER SUPERIOR */}
+      <section id="servicios" className="pt-2 pb-16 lg:pt-10 lg:pb-32 bg-white">
         <div className="container mx-auto px-6 lg:px-10">
+
           <div className="max-w-2xl mb-12 lg:mb-24">
-            <h2 className="text-3xl lg:text-5xl font-black text-gray-900 tracking-tighter uppercase mb-6">Entrega Urbana Total</h2>
+            <h2 className="text-3xl lg:text-5xl font-black text-gray-900 tracking-tighter uppercase mb-6">Tus antojos y compras a la puerta de tu casa en Mene Grande!</h2>
             <div className="h-1.5 w-32 bg-orange-600 rounded-full" />
           </div>
           
@@ -455,7 +514,7 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
       </section>
 
       {/* CONTROL SECTION (Radar) */}
-      <section id="rastreo" className="py-20 lg:py-44 bg-zinc-950 overflow-hidden relative">
+      <section id="rastreo" className="pt-20 pb-4 lg:pt-32 lg:pb-8 bg-zinc-950 overflow-hidden relative">
         <div className="absolute inset-0 z-0 opacity-10">
           <div className="w-full h-full bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]" />
         </div>
@@ -521,8 +580,99 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
       </section>
 
 
+      {/* ÚNETE A DELIVERYEXPRESS SECTION (ALLY ACQUISITION) */}
+      <section id="unete" className="pt-4 pb-16 lg:pt-8 lg:pb-24 bg-white border-t border-gray-50">
+        <div className="container mx-auto px-6 lg:px-10">
+          <motion.div 
+            initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }}
+            className="text-center mb-4 lg:mb-6 space-y-2"
+          >
+            <div className="inline-flex items-center gap-2 text-orange-600 text-[10px] font-black uppercase tracking-[0.4em] mb-4">
+              <Shield size={14} /> Red de Aliados Premium
+            </div>
+            <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black text-gray-900 tracking-tighter uppercase leading-[0.9]">
+              Únete a <br/>
+              <span className="text-orange-600 italic">DELIVERYEXPRESS</span>
+            </h2>
+            <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] lg:text-xs max-w-2xl mx-auto leading-relaxed">
+              Transformamos tu logística en una ventaja competitiva. Lleva tus productos a miles de clientes en tiempo récord.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 max-w-7xl mx-auto">
+            {/* CARD RESTAURANTE */}
+            <motion.div 
+              whileHover={{ y: -10 }}
+              onClick={() => setAllyModal('restaurante')}
+              className="group cursor-pointer bg-white rounded-[3.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] hover:shadow-2xl transition-all border border-gray-100"
+            >
+              <div className="aspect-[16/9] w-full overflow-hidden bg-gray-50">
+                <img 
+                  src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/restaurante.jpg" 
+                  alt="Registra tu Restaurante" 
+                  className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110" 
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div className="p-10 lg:p-14 space-y-8">
+                <div className="space-y-3">
+                  <div className="w-12 h-1 bg-orange-600 rounded-full" />
+                  <h3 className="text-3xl lg:text-5xl font-black text-gray-900 uppercase tracking-tighter leading-tight">
+                    Registra tu <br/> <span className="text-orange-600">Restaurante</span>
+                  </h3>
+                </div>
+                <p className="text-gray-400 font-medium text-base leading-relaxed">
+                  Accede a una red masiva de comensales. Tú cocinas, nosotros nos encargamos del resto con envíos ultra-rápidos.
+                </p>
+                <div className="pt-4 flex items-center gap-4 text-xs font-black uppercase tracking-[0.2em] text-gray-900 group-hover:text-orange-600 transition-colors">
+                  <span className="bg-gray-900 text-white group-hover:bg-orange-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                    <ArrowRight size={18} />
+                  </span>
+                  Quiero Registrarme
+                </div>
+              </div>
+            </motion.div>
+
+            {/* CARD COMERCIO */}
+            <motion.div 
+              whileHover={{ y: -10 }}
+              onClick={() => setAllyModal('comercio')}
+              className="group cursor-pointer bg-white rounded-[3.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] hover:shadow-2xl transition-all border border-gray-100"
+            >
+              <div className="aspect-[16/9] w-full overflow-hidden bg-gray-50">
+                <img 
+                  src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/abasto.jpg" 
+                  alt="Registra tu Comercio" 
+                  className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110" 
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div className="p-10 lg:p-14 space-y-8">
+                <div className="space-y-3">
+                  <div className="w-12 h-1 bg-gray-900 rounded-full" />
+                  <h3 className="text-3xl lg:text-5xl font-black text-gray-900 uppercase tracking-tighter leading-tight">
+                    Registra tu <br/> <span className="text-gray-900">Comercio</span>
+                  </h3>
+                </div>
+                <p className="text-gray-400 font-medium text-base leading-relaxed">
+                  Vende lo que sea, a cualquier parte. Desde moda hasta ferretería, somos tu socio logístico de confianza.
+                </p>
+                <div className="pt-4 flex items-center gap-4 text-xs font-black uppercase tracking-[0.2em] text-gray-900 group-hover:text-orange-600 transition-colors">
+                  <span className="bg-gray-900 text-white group-hover:bg-orange-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                    <ArrowRight size={18} />
+                  </span>
+                  Empezar Ahora
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER - FONDO CON VIDEO CINEMÁTICO */}
-      <footer id="contacto" className="relative py-12 lg:py-44 overflow-hidden min-h-[400px] lg:min-h-[500px] flex items-center bg-zinc-950">
+      <footer id="contacto" className="relative py-24 overflow-hidden min-h-[400px] lg:min-h-[500px] flex items-center bg-zinc-950">
         {/* VIDEO DE FONDO */}
         <video 
           autoPlay 
@@ -553,33 +703,39 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
             </div>
             <p className="text-[12px] lg:text-sm font-black uppercase tracking-[0.8em] text-white/90 not-italic drop-shadow-lg">Tu Logística Urbana de Confianza</p>
           </div>
-
-          <div className="flex flex-wrap justify-center gap-10 text-[10px] font-black text-white uppercase tracking-widest">
-            {[
-              { id: 'privacidad', label: 'Política de Privacidad' },
-              { id: 'terminos', label: 'Términos de Servicio' },
-              { id: 'faq', label: 'Preguntas Frecuentes' }
-            ].map(item => (
-              <button 
-                key={item.id} 
-                onClick={() => setInfoModal(item.id as any)} 
-                className="hover:text-orange-200 transition-colors uppercase border-b border-white pb-1"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-4">
-             <div className="text-[10px] font-black text-white uppercase tracking-[0.2em] drop-shadow-md">
-                © 2026 TODOS LOS DERECHOS RESERVADOS DELIVERYEXPRESS
-             </div>
-             <div className="text-[10px] font-black text-white/70 uppercase tracking-[0.3em] drop-shadow-md">
-                Desarrollado por <a href="https://jacomeovalle.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-orange-200 transition-colors underline underline-offset-4 font-bold">Armando Ovalle</a>
-             </div>
-          </div>
         </div>
       </footer>
+
+      {/* FOOTER BAR (LEGAL & CREDITS - MINIMALIST ON WHITE) */}
+      <div className="bg-white py-12 px-6 border-t border-gray-100 min-h-[140px] flex flex-col items-center gap-8">
+        <div className="flex flex-wrap justify-center gap-x-10 gap-y-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+          {[
+            { id: 'privacidad', label: 'Política de Privacidad' },
+            { id: 'terminos', label: 'Términos de Servicio' },
+            { id: 'faq', label: 'Preguntas Frecuentes' }
+          ].map(item => (
+            <button 
+              key={item.id} 
+              onClick={() => setInfoModal(item.id as any)} 
+              className="hover:text-orange-600 transition-colors uppercase border-b border-gray-100 pb-1"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-3 text-center">
+           <div className="text-[9px] font-black text-gray-300 uppercase tracking-[0.2em]">
+              © 2026 TODOS LOS DERECHOS RESERVADOS DELIVERYEXPRESS
+           </div>
+           <div className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em]">
+              Desarrollado por <a href="https://jacomeovalle.com" target="_blank" rel="noopener noreferrer" className="text-gray-900 hover:text-orange-600 transition-colors underline underline-offset-4 font-black">Armando Ovalle</a>
+           </div>
+        </div>
+        
+        {/* Espacio extra solo para móvil si navega con flotante */}
+        <div className="lg:hidden h-20 w-full" />
+      </div>
 
       {/* MODAL ALIADO (CART & CHECKOUT) - Mantenemos la lógica pero con estilos más pulidos */}
       <AnimatePresence>
@@ -607,8 +763,8 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
                     </div>
 
                     <div className="space-y-6">
-                       <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest border-b border-gray-100 pb-4">Nuestra Carta Digital</h4>
-                       <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2 scrollbar-hide">
+                        <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest border-b border-gray-100 pb-4">Nuestra Carta Digital</h4>
+                        <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2 scrollbar-hide">
                           {selectedAliado.productos?.map((prod) => (
                             <div key={prod.id} className="bg-gray-50/50 p-6 rounded-3xl border border-gray-100 flex items-center justify-between gap-4">
                               <div className="flex-1 space-y-1">
@@ -829,6 +985,156 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
           ))}
         </motion.nav>
       </div>
+
+      {/* MODAL REGISTRO ALIADOS (WHATSAPP) */}
+      <AnimatePresence>
+        {allyModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md"
+            onClick={() => setAllyModal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden relative"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="relative h-32 lg:h-40 bg-zinc-950 flex items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 bg-orange-600/20 z-0" />
+                <button 
+                  onClick={() => setAllyModal(null)} 
+                  className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors z-20"
+                >
+                  <X size={20} />
+                </button>
+                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="relative z-10 text-center space-y-1">
+                  <h2 className="text-xl lg:text-3xl font-black text-white uppercase tracking-tighter">
+                    {allyModal === 'restaurante' ? 'Registra tu restaurante' : '¡Regístrate y empieza a vender!'}
+                  </h2>
+                  <p className="text-[10px] lg:text-xs font-bold text-orange-200 uppercase tracking-widest px-4">
+                    Comienza hoy mismo a expandir tu negocio
+                  </p>
+                </motion.div>
+              </div>
+
+              {/* Form Body */}
+              <div className="p-8 lg:p-12 space-y-8 overflow-y-auto max-h-[70vh]">
+                <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center text-white shrink-0">
+                    <User size={16} />
+                  </div>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide leading-tight">
+                    ¿Ya comenzaste tu registro? <br/> <button className="text-orange-600 hover:underline">continúa aquí.</button>
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
+                  {/* Nombre */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Nombre del {allyModal === 'restaurante' ? 'Restaurante' : 'Negocio'}</label>
+                    <input 
+                      type="text" 
+                      value={allyNombre}
+                      onChange={(e) => setAllyNombre(e.target.value)}
+                      placeholder="Ej: Sabores del Norte"
+                      className={`w-full px-6 py-4 bg-gray-50 border ${allyError && !allyNombre ? 'border-red-500 animate-shake' : 'border-gray-100'} rounded-2xl font-bold focus:bg-white focus:ring-2 focus:ring-orange-500/20 transition-all outline-none`}
+                    />
+                    {allyError && !allyNombre && <p className="text-[9px] font-bold text-red-500 uppercase ml-1 tracking-widest animate-fade-in">Es requerido</p>}
+                  </div>
+
+                  {/* Tipo / Giro (DESPLEGABLE) */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+                      {allyModal === 'restaurante' ? 'Tipo de comida' : 'Giro del negocio'}
+                    </label>
+                    <div className="relative">
+                      <select 
+                        value={allyTipo}
+                        onChange={(e) => setAllyTipo(e.target.value)}
+                        className={`w-full px-6 py-4 bg-gray-50 border ${allyError && !allyTipo ? 'border-red-500 animate-shake' : 'border-gray-100'} rounded-2xl font-bold focus:bg-white focus:ring-2 focus:ring-orange-500/20 transition-all outline-none appearance-none cursor-pointer`}
+                      >
+                        <option value="">Selecciona una opción</option>
+                        {allyModal === 'restaurante' ? (
+                          <>
+                            {['Pizza', 'Hamburguesas', 'Comida China', 'Sushi', 'Pollo Asado', 'Comida Casera', 'Postres', 'Heladería', 'Otros'].map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </>
+                        ) : (
+                          <>
+                            {['Ropa y Calzado', 'Tecnología', 'Farmacia', 'Ferretería', 'Repuestos', 'Artículos para el Hogar', 'Belleza', 'Otros'].map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </>
+                        )}
+                      </select>
+                      <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                        <Menu size={16} />
+                      </div>
+                    </div>
+                    {allyError && !allyTipo && <p className="text-[9px] font-bold text-red-500 uppercase ml-1 tracking-widest animate-fade-in">Es requerido</p>}
+                  </div>
+
+                  {/* Dirección */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Dirección del establecimiento</label>
+                    <textarea 
+                      value={allyDireccion}
+                      onChange={(e) => setAllyDireccion(e.target.value)}
+                      placeholder="Calle, Sector, Ciudad..."
+                      rows={2}
+                      className={`w-full px-6 py-4 bg-gray-50 border ${allyError && !allyDireccion ? 'border-red-500 animate-shake' : 'border-gray-100'} rounded-2xl font-bold focus:bg-white focus:ring-2 focus:ring-orange-500/20 transition-all outline-none resize-none`}
+                    />
+                    {allyError && !allyDireccion && <p className="text-[9px] font-bold text-red-500 uppercase ml-1 tracking-widest animate-fade-in">Es requerido</p>}
+                  </div>
+
+                  {/* Teléfono y Email Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Tu móvil</label>
+                      <div className="flex items-center gap-2">
+                        <div className="px-3 md:px-4 py-4 bg-gray-100 border border-gray-100 rounded-2xl font-black text-gray-500 text-xs md:text-sm shrink-0">
+                          +58 | VE
+                        </div>
+                        <input 
+                          type="tel" 
+                          value={allyMovil}
+                          onChange={(e) => setAllyMovil(e.target.value.replace(/\D/g, ''))}
+                          placeholder="412 1234567"
+                          className={`w-full px-4 md:px-6 py-4 bg-gray-50 border ${allyError && !allyMovil ? 'border-red-500 animate-shake' : 'border-gray-100'} rounded-2xl font-bold focus:bg-white focus:ring-2 focus:ring-orange-500/20 transition-all outline-none`}
+                        />
+                      </div>
+                      {allyError && !allyMovil && <p className="text-[8px] font-extrabold text-red-500 uppercase ml-1 tracking-widest animate-fade-in">Se requiere un número de WhatsApp</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">E-mail responsable</label>
+                      <input 
+                        type="email" 
+                        value={allyEmail}
+                        onChange={(e) => setAllyEmail(e.target.value)}
+                        placeholder="contacto@negocio.com"
+                        className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold focus:bg-white focus:ring-2 focus:ring-orange-500/20 transition-all outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button 
+                  onClick={handleAllySubmit}
+                  className="w-full py-5 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl shadow-orange-600/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                >
+                  Continuar registro <MessageCircle size={20} />
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
