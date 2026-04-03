@@ -183,19 +183,21 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ currentUser }) => {
               ) : (
                 <div className="flex-1 p-4 space-y-4">
                   {mensajes.map((msg) => {
-                    const isMe = msg.remitenteId === currentUser.uid;
+                    const remitenteId = msg.remitenteId || (msg as any).remitente_id;
+                    const isMe = remitenteId === currentUser.uid;
                     return (
                       <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                         <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${isMe ? 'bg-orange-500 text-white rounded-br-sm' : 'bg-white text-gray-800 rounded-bl-sm shadow-sm border border-gray-100'}`}>
-                          {!isMe && <p className="text-[10px] font-bold mb-1 opacity-50">{msg.remitenteNombre}</p>}
+                          {!isMe && <p className="text-[10px] font-bold mb-1 opacity-50">{msg.remitenteNombre || (msg as any).remitente_nombre}</p>}
                           <p className="text-sm">{msg.texto}</p>
                         </div>
                         <span className="text-[10px] text-gray-400 mt-1">
                           {(() => {
                             try {
-                              if (!msg.timestamp) return '';
-                              const d = (msg.timestamp as any).toDate ? (msg.timestamp as any).toDate() : new Date(msg.timestamp as any);
-                              return format(d, 'HH:mm', { locale: es });
+                              const ts = msg.timestamp || (msg as any).created_at;
+                              if (!ts) return '';
+                              const d = (ts as any).toDate ? (ts as any).toDate() : new Date(ts);
+                              return isNaN(d.getTime()) ? '' : format(d, 'HH:mm', { locale: es });
                             } catch (e) { return ''; }
                           })()}
                         </span>

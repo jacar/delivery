@@ -4,6 +4,12 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --animate-scroll-infinite: scroll-infinite 40s linear infinite;
+
+  @keyframes scroll-infinite {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
 }
 
 .leaflet-container {

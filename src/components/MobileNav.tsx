@@ -20,16 +20,16 @@ export default function MobileNav({ rol, onNavigate }: MobileNavProps) {
     <motion.div 
       initial={{ y: 100 }}
       animate={{ y: 0 }}
-      className="md:hidden fixed bottom-6 left-4 right-4 z-50 bg-gray-900/95 backdrop-blur-lg rounded-[2rem] p-2 shadow-2xl border border-white/10 flex justify-around items-center"
+      className="md:hidden fixed bottom-4 left-6 right-6 z-50 bg-white/70 backdrop-blur-2xl rounded-[2rem] p-1.5 shadow-[0_15px_40px_-5px_rgba(0,0,0,0.1)] border border-white/50 flex justify-around items-center"
     >
       {navItems.map((item) => (
         <button
           key={item.id}
           onClick={() => onNavigate(item.id)}
-          className="p-4 rounded-2xl text-gray-400 hover:text-orange-500 transition-colors flex flex-col items-center gap-1"
+          className="p-3 rounded-2xl text-gray-500 hover:text-orange-500 transition-colors flex flex-col items-center gap-0.5"
         >
-          <item.icon size={20} />
-          <span className="text-[9px] font-black uppercase tracking-widest">{item.label}</span>
+          <item.icon size={18} />
+          <span className="text-[8px] font-black uppercase tracking-tight opacity-60">{item.label}</span>
         </button>
       ))}
     </motion.div>

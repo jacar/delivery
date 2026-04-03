@@ -128,7 +128,18 @@ export default function ClienteView({ userData, activeTab: propActiveTab }: Clie
           <motion.button
             whileHover={{ scale: 1.05, boxShadow: "0 20px 30px -10px rgba(249, 115, 22, 0.3)" }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              const nextState = !showForm;
+              setShowForm(nextState);
+              if (nextState) {
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                  });
+                }, 100);
+              }
+            }}
             className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-5 rounded-[2rem] shadow-2xl shadow-orange-200 transition-all flex items-center justify-center gap-3 font-black uppercase tracking-widest text-xs"
           >
             {showForm ? <Clock size={20} /> : <Plus size={20} />}
