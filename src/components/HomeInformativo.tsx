@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../hooks/useAuth';
+import ScrollSequence from './ScrollSequence';
 
 const API_BASE_URL = 'https://www.webcincodev.com/b2b/public/api';
 
@@ -46,6 +47,41 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
 
   const effectiveUser = userData || localUser;
   const [cart, setCart] = useState<Record<string, number>>({});
+  const [detectedLocation, setDetectedLocation] = useState<string | null>(null);
+  const [isDetecting, setIsDetecting] = useState(false);
+
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("La geolocalización no es compatible con tu navegador.");
+      return;
+    }
+    setIsDetecting(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+          const data = await res.json();
+          const city = data.address.city || data.address.town || data.address.village || data.address.suburb || "Ubicación activa";
+          setDetectedLocation(city);
+          setDireccion(city); // Sincronizar con el campo de dirección del pedido
+          toast.success(`Ubicación detectada: ${city}`);
+        } catch (e) {
+          setDetectedLocation("Ubicación activa");
+        } finally {
+          setIsDetecting(false);
+        }
+      },
+      (error) => {
+        setIsDetecting(false);
+        if (error.code === 1) {
+          toast.error("Permiso de ubicación denegado.");
+        } else {
+          toast.error("No se pudo obtener tu ubicación.");
+        }
+      }
+    );
+  };
 
   const updateQuantity = (productoId: string, delta: number) => {
     setCart(prev => {
@@ -133,7 +169,6 @@ export default function HomeInformativo({ onStart }: HomeInformativoProps) {
   const handleClose = () => {
     setSelectedAliado(null);
     setCheckoutStep('menu');
-    setDireccion('');
     setCart({});
   };
 
@@ -190,7 +225,7 @@ Estado: SOLICITUD DE ALTA`;
           <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>
             <div className="w-12 h-12 lg:w-24 lg:h-24 transition-transform duration-500 group-hover:scale-110">
               <img 
-                src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/bg-7.png" 
+                src="/banners/bg-7.png" 
                 alt="DeliveryExpress Logo" 
                 className="w-full h-full object-contain" 
                 fetchPriority="high"
@@ -199,6 +234,22 @@ Estado: SOLICITUD DE ALTA`;
             </div>
             <div className="text-2xl lg:text-5xl font-black italic tracking-tighter text-gray-900 leading-none">
               DELIVERY<span className="text-orange-600">EXPRESS</span>
+            </div>
+          </div>
+
+          {/* UBICACIÓN DETECTADA (NUEVO) */}
+          <div 
+            onClick={handleDetectLocation}
+            className="hidden md:flex items-center gap-3 px-5 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-full cursor-pointer transition-all border border-gray-100 group ml-4"
+          >
+            <div className={`p-2 rounded-full transition-all duration-500 ${isDetecting ? 'bg-orange-100 animate-pulse' : 'bg-orange-600 shadow-lg shadow-orange-600/20'}`}>
+              <MapPin size={14} className={isDetecting ? 'text-orange-600' : 'text-white'} />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Entrega en</span>
+              <span className="text-[11px] font-bold text-gray-900 truncate max-w-[150px]">
+                {isDetecting ? 'Buscando...' : (detectedLocation || 'Cerca de ti')}
+              </span>
             </div>
           </div>
 
@@ -254,17 +305,28 @@ Estado: SOLICITUD DE ALTA`;
       </AnimatePresence>
 
       {/* NUEVA SECCIÓN DE BANNER GRÁFICO (TOP - ANCHO COMPLETO) */}
-      <section className="pt-16 lg:pt-24 pb-0 bg-white overflow-hidden">
+      <section className="pt-10 lg:pt-14 pb-0 bg-orange-600 overflow-hidden mb-12 lg:mb-20">
         <div className="w-full">
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }}
             className="w-full relative shadow-lg"
           >
+            {/* VERSIÓN MÓVIL */}
             <img 
-              src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/Te-hacemos-la-Llegamos-en-minutos.-El-delivery-mas-rapido-de-Mene-Grande-directamente-a-tu-puerta.-vida-mas-facil-2.svg" 
-              alt="Promo DeliveryExpress" 
-              className="w-full h-auto block"
+              src="/banners/mobile.svg" 
+              alt="Promo DeliveryExpress Móvil" 
+              className="block lg:hidden w-full h-[180px] sm:h-[220px] object-cover object-left"
+              fetchPriority="high"
+              loading="eager"
+            />
+            {/* VERSIÓN ESCRITORIO */}
+            <img 
+              src="/banners/desktop.svg" 
+              alt="Promo DeliveryExpress Desktop" 
+              className="hidden lg:block w-full h-auto object-contain"
+              fetchPriority="high"
+              loading="eager"
             />
           </motion.div>
         </div>
@@ -341,13 +403,7 @@ Estado: SOLICITUD DE ALTA`;
               transition={{ duration: 0.8 }}
               className="relative aspect-[4/5] rounded-[4rem] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.15)] border-8 border-white bg-gray-100 group"
             >
-              <img 
-                src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/bg-6.png" 
-                alt="Delivery Hero" 
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
-                fetchPriority="high"
-                decoding="sync"
-              />
+              <ScrollSequence />
               
               {/* RASTREO FLOTANTE CARD */}
               <motion.div 
@@ -679,11 +735,11 @@ Estado: SOLICITUD DE ALTA`;
           loop 
           muted 
           playsInline 
-          poster="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/bg-7.png"
+          poster="/banners/bg-7.png"
           className="absolute inset-0 w-full h-full object-cover opacity-60 z-0"
           preload="metadata"
         >
-          <source src="https://www.webcincodev.com/blog/wp-content/uploads/2026/03/DELIVERY-EXPRESS-_1_.webm" type="video/webm" />
+          <source src="/banners/hero-video.webm" type="video/webm" />
         </video>
 
         {/* OVERLAY DE COLOR (TINTE NARANJA) */}
@@ -691,10 +747,10 @@ Estado: SOLICITUD DE ALTA`;
         
         <div className="container mx-auto px-6 flex flex-col items-center text-center gap-12 relative z-20">
           {/* LOGO DE IMAGEN OFICIAL */}
-          <div className="flex flex-col items-center gap-6 group cursor-default">
+          <div className="flex flex-col items-center gap-6 group cursor-pointer" onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>
             <div className="w-64 lg:w-[450px] transition-transform duration-500 group-hover:scale-110 drop-shadow-2xl">
                <img 
-                 src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/bg-800-x-800-px-3.png" 
+                 src="/banners/logo-footer.png" 
                  alt="DeliveryExpress Logo" 
                  className="w-full h-auto" 
                  loading="lazy"
@@ -742,23 +798,23 @@ Estado: SOLICITUD DE ALTA`;
         {selectedAliado && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md">
             <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-xl rounded-[4rem] overflow-hidden shadow-2xl relative max-h-[90vh] overflow-y-auto">
+              className="bg-white w-full max-w-xl rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden shadow-2xl relative max-h-[90vh] overflow-y-auto">
               
-              <button onClick={handleClose} className="absolute top-8 right-8 z-10 w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors">
-                <X size={20} />
+              <button onClick={handleClose} className="absolute top-6 right-6 sm:top-8 sm:right-8 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors shadow-sm">
+                <X size={18} />
               </button>
 
-              <div className="p-10 lg:p-14 space-y-10">
+              <div className="p-6 sm:p-10 lg:p-14 space-y-8 sm:space-y-10">
                 {/* MODAL CONTENT STEPS (MENU, REGISTER, CHECKOUT) */}
                 {checkoutStep === 'menu' && (
                   <>
-                    <div className="flex items-center gap-8">
-                       <div className="w-32 h-32 bg-gray-50 rounded-[2.5rem] overflow-hidden border-4 border-gray-50 flex-shrink-0 shadow-lg">
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 text-center sm:text-left">
+                       <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-50 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden border-4 border-gray-50 flex-shrink-0 shadow-lg">
                           <img src={selectedAliado.logoUrl} alt={selectedAliado.nombre} className="w-full h-full object-cover" />
                        </div>
-                       <div className="space-y-1">
-                          <h3 className="text-4xl font-black text-gray-900 tracking-tighter uppercase leading-none">{selectedAliado.nombre}</h3>
-                          <div className="text-orange-600 font-black text-[10px] uppercase tracking-[0.3em] py-1">Establecimiento Aliado</div>
+                       <div className="space-y-1 sm:pt-2">
+                          <h3 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tighter uppercase leading-tight sm:leading-none whitespace-normal break-words">{selectedAliado.nombre}</h3>
+                          <div className="text-orange-600 font-black text-[9px] sm:text-[10px] uppercase tracking-[0.3em] py-1">Establecimiento Aliado</div>
                        </div>
                     </div>
 

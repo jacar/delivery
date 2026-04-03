@@ -1,13 +1,79 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Envío Express</title>
+    
+    <!-- SEO BÁSICO -->
+    <title>DeliveryExpress | Tu Logística Urbana de Confianza en Mene Grande</title>
+    <meta name="description" content="El delivery más rápido de Mene Grande directamente a tu puerta. Pedidos en línea, rastreo en tiempo real y los mejores aliados comerciales." />
+    <meta name="keywords" content="delivery, mene grande, comida a domicilio, logística urbana, envío express, pedidos online" />
+    <meta name="author" content="DeliveryExpress" />
+
+    <!-- OPEN GRAPH / FACEBOOK / WHATSAPP -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://strongmeropower.com/" />
+    <meta property="og:title" content="DeliveryExpress | Llegamos en Minutos" />
+    <meta property="og:description" content="¿Hambre? ¿Ocupado? Sin tiempo? El delivery más rápido de la ciudad a un clic de distancia." />
+    <meta property="og:image" content="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/Te-hacemos-la-Llegamos-en-minutos.-El-delivery-mas-rapido-de-Mene-Grande-directamente-a-tu-puerta.-vida-mas-facil-4.svg" />
+
+    <!-- TWITTER -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://strongmeropower.com/" />
+    <meta property="twitter:title" content="DeliveryExpress | Tu Delivery de Confianza" />
+    <meta property="twitter:description" content="Rastreo en tiempo real y los mejores comercios de Mene Grande." />
+    <meta property="twitter:image" content="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/Te-hacemos-la-Llegamos-en-minutos.-El-delivery-mas-rapido-de-Mene-Grande-directamente-a-tu-puerta.-vida-mas-facil-4.svg" />
+
+    <!-- RENDIMIENTO / PRECONNECT -->
+    <link rel="preconnect" href="https://www.webcincodev.com" />
+    <link rel="dns-prefetch" href="https://www.webcincodev.com" />
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#f97316" />
-    <link rel="icon" type="image/x-icon" href="https://picsum.photos/seed/delivery/favicon.ico" />
-    <link rel="apple-touch-icon" href="https://picsum.photos/seed/delivery/192/192" />
+    <link rel="icon" type="image/png" href="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/bg-800-x-800-px-3.png" />
+    <link rel="apple-touch-icon" href="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/bg-800-x-800-px-3.png" />
+
+    <!-- ESTRUCTURA DE DATOS (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "DeliveryService",
+      "name": "DeliveryExpress",
+      "description": "Servicio de logística y delivery express en Mene Grande.",
+      "url": "https://strongmeropower.com",
+      "logo": "https://www.webcincodev.com/blog/wp-content/uploads/2026/04/bg-800-x-800-px-3.png",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Mene Grande",
+        "addressCountry": "VE"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "9.8167",
+        "longitude": "-70.9333"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Servicios de Delivery",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Entrega de Alimentos"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Mensajería Express"
+            }
+          }
+        ]
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
