@@ -215,7 +215,7 @@ export default function MotoTaxiAdmin() {
                   <div className="flex items-center justify-between pt-2 border-t border-gray-50">
                       <DollarSign size={14} className="text-violet-500" />
                       <span className="text-2xl font-black text-violet-600">{Number(tarifa.precio).toFixed(2)}</span>
-                      <span className="text-xs font-bold text-gray-400">Bs.</span>
+                      <span className="text-xs font-bold text-gray-400">USD</span>
                     <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
                       tarifa.activo ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
                     }`}>
@@ -295,7 +295,7 @@ export default function MotoTaxiAdmin() {
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                    Precio (Bs.) *
+                    Precio (USD) *
                   </label>
                   <div className="relative">
                     <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />

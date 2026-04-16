@@ -166,12 +166,12 @@ export default function ClienteView({ userData, activeTab: propActiveTab }: Clie
       let cleanDesc = descripcion.trim();
       if (tipo === 'mototaxi') {
         if (!tarifaSeleccionada) throw new Error('Selecciona una tarifa');
-        cleanDesc = `Moto Taxi - ${tarifaSeleccionada.nombre} - Bs. ${Number(tarifaSeleccionada.precio).toFixed(2)}`;
+        cleanDesc = `Moto Taxi - ${tarifaSeleccionada.nombre} - $ ${Number(tarifaSeleccionada.precio).toFixed(2)}`;
       } else {
         if (!cleanDesc) throw new Error('La descripción es obligatoria');
         const tg = tipo === 'compra' ? tarifasGenerales.compra : tarifasGenerales.recoleccion;
         if (tg) {
-          cleanDesc = `${tipo.toUpperCase()} - ${cleanDesc} - Tarifa Base: Bs. ${Number(tg.precio).toFixed(2)}`;
+          cleanDesc = `${tipo.toUpperCase()} - ${cleanDesc} - Tarifa Base: $ ${Number(tg.precio).toFixed(2)}`;
         }
       }
 
@@ -412,7 +412,7 @@ export default function ClienteView({ userData, activeTab: propActiveTab }: Clie
                     </div>
                   </div>
                   <span className="text-xl font-black text-orange-600">
-                    Bs. {Number(tipo === 'compra' ? tarifasGenerales.compra?.precio || 0 : tarifasGenerales.recoleccion?.precio || 0).toFixed(2)}
+                    $ {Number(tipo === 'compra' ? tarifasGenerales.compra?.precio || 0 : tarifasGenerales.recoleccion?.precio || 0).toFixed(2)}
                   </span>
                 </div>
               )}
@@ -462,7 +462,7 @@ export default function ClienteView({ userData, activeTab: propActiveTab }: Clie
                             <p className={`text-xl font-black mt-2 ml-6 ${
                               tarifaSeleccionada?.id === tarifa.id ? 'text-violet-600' : 'text-gray-600'
                             }`}>
-                              Bs. {Number(tarifa.precio).toFixed(2)}
+                              $ {Number(tarifa.precio).toFixed(2)}
                             </p>
                           </button>
                         ))}
@@ -483,7 +483,7 @@ export default function ClienteView({ userData, activeTab: propActiveTab }: Clie
                             <p className="font-black text-sm">{tarifaSeleccionada.nombre}</p>
                           </div>
                         </div>
-                        <span className="text-2xl font-black">Bs. {Number(tarifaSeleccionada.precio).toFixed(2)}</span>
+                        <span className="text-2xl font-black">$ {Number(tarifaSeleccionada.precio).toFixed(2)}</span>
                       </motion.div>
                     )}
                   </motion.div>
@@ -823,7 +823,7 @@ export default function ClienteView({ userData, activeTab: propActiveTab }: Clie
                             {producto.descripcion || 'Producto de alta calidad seleccionado para ti.'}
                           </p>
                           <div className="flex items-center justify-between">
-                            <span className="text-xl font-black text-orange-600">Bs. {Number(producto.precio).toFixed(2)}</span>
+                            <span className="text-xl font-black text-orange-600">$ {Number(producto.precio).toFixed(2)}</span>
                             
                             <div className="flex items-center gap-3">
                               {getCartItemQuantity(producto.id) > 0 ? (
@@ -874,7 +874,7 @@ export default function ClienteView({ userData, activeTab: propActiveTab }: Clie
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Resumen de Pedido</p>
-                      <h4 className="text-xl font-black text-gray-900">{cart.length} Productos • Bs. {Number(cartTotal).toFixed(2)}</h4>
+                      <h4 className="text-xl font-black text-gray-900">{cart.length} Productos • $ {Number(cartTotal).toFixed(2)}</h4>
                     </div>
                   </div>
                   
