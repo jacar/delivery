@@ -66,9 +66,12 @@ function ChangeView({ center }: { center: [number, number] }) {
 }
 
 interface TrackingMapProps {
-  pedido: Pedido;
+  pedido?: Pedido; // Opcional en modo picker
   userPos?: { lat: number, lng: number } | null;
   driverVehicleType?: string;
+  isPicker?: boolean;
+  onLocationChange?: (lat: number, lng: number) => void;
+  initialCenter?: [number, number];
 }
 
 const isValidCoord = (lat: any, lng: any): boolean => {
@@ -83,45 +86,26 @@ const isValidCoord = (lat: any, lng: any): boolean => {
   );
 };
 
-const TrackingMap = memo(({ pedido, userPos, driverVehicleType }: TrackingMapProps) => {
-  const driverPos = pedido.ubicacion_actual && isValidCoord(pedido.ubicacion_actual.lat, pedido.ubicacion_actual.lng)
+const TrackingMap = memo(({ pedido, userPos, driverVehicleType, isPicker, onLocationChange, initialCenter }: TrackingMapProps) => {
+  const driverPos = pedido?.ubicacion_actual && isValidCoord(pedido.ubicacion_actual.lat, pedido.ubicacion_actual.lng)
     ? [Number(pedido.ubicacion_actual.lat), Number(pedido.ubicacion_actual.lng)] as [number, number] : null;
-  const destPos = pedido.ubicacion_entrega && isValidCoord(pedido.ubicacion_entrega.lat, pedido.ubicacion_entrega.lng)
-    ? [Number(pedido.ubicacion_entrega.lat), Number(pedido.ubicacion_entrega.lng)] as [number, number] : null;
+  const destPos = (pedido?.ubicacion_entrega && isValidCoord(pedido.ubicacion_entrega.lat, pedido.ubicacion_entrega.lng))
+    ? [Number(pedido.ubicacion_entrega.lat), Number(pedido.ubicacion_entrega.lng)] as [number, number] 
+    : (isPicker && initialCenter ? initialCenter : null);
   const clientPos = userPos && isValidCoord(userPos.lat, userPos.lng)
     ? [Number(userPos.lat), Number(userPos.lng)] as [number, number] : null;
   
-  const defaultCenter = driverPos || clientPos || destPos;
+  const defaultCenter = initialCenter || driverPos || clientPos || destPos || [10.4806, -66.9036];
 
-  // Si no hay ninguna coordenada válida, mostrar alerta de GPS
-  if (!defaultCenter) {
-    return (
-      <div className="h-[400px] w-full rounded-[2rem] overflow-hidden border border-gray-100 bg-gray-50 flex flex-col items-center justify-center gap-6 p-8">
-        <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500">
-            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-            <circle cx="12" cy="10" r="3"/>
-          </svg>
-        </div>
-        <div className="text-center space-y-2">
-          <h4 className="text-lg font-black text-gray-900">Activa tu GPS</h4>
-          <p className="text-sm text-gray-500 font-medium max-w-xs">Para rastrear tu pedido en tiempo real, activa la ubicación en tu dispositivo y permite el acceso a esta página.</p>
-        </div>
-        <button 
-          onClick={() => {
-            navigator.geolocation.getCurrentPosition(
-              () => window.location.reload(),
-              () => alert('Por favor activa el GPS en los ajustes de tu dispositivo y recarga la página.'),
-              { enableHighAccuracy: true, timeout: 10000 }
-            );
-          }}
-          className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-orange-200 hover:bg-orange-600 transition-colors"
-        >
-          Activar Ubicación
-        </button>
-      </div>
-    );
-  }
+  const markerEvents = {
+    dragend(e: any) {
+      const marker = e.target;
+      const position = marker.getLatLng();
+      if (onLocationChange) {
+        onLocationChange(position.lat, position.lng);
+      }
+    },
+  };
 
   return (
     <div className="h-[400px] w-full rounded-[2rem] overflow-hidden shadow-inner border border-gray-100">
@@ -131,7 +115,7 @@ const TrackingMap = memo(({ pedido, userPos, driverVehicleType }: TrackingMapPro
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         
-        {clientPos && (
+        {clientPos && !isPicker && (
           <Marker position={clientPos} icon={userIcon}>
             <Popup>Tu ubicación actual</Popup>
           </Marker>
@@ -141,7 +125,7 @@ const TrackingMap = memo(({ pedido, userPos, driverVehicleType }: TrackingMapPro
           <>
             <Marker position={driverPos} icon={getDriverIcon(driverVehicleType)}>
               <Popup>
-                <div className="font-bold">Repartidor: {pedido.motorizado_nombre}</div>
+                <div className="font-bold">Repartidor: {pedido?.motorizado_nombre}</div>
                 <div className="text-xs text-gray-500">En camino a tu ubicación</div>
               </Popup>
             </Marker>
@@ -150,12 +134,21 @@ const TrackingMap = memo(({ pedido, userPos, driverVehicleType }: TrackingMapPro
         )}
 
         {destPos && (
-          <Marker position={destPos} icon={destinationIcon}>
-            <Popup>
-              <div className="font-bold">Destino de Entrega</div>
-              <div className="text-xs text-gray-500">{pedido.ubicacion_entrega?.direccion}</div>
-            </Popup>
-          </Marker>
+          <>
+            <Marker 
+              position={destPos} 
+              icon={destinationIcon}
+              draggable={isPicker}
+              eventHandlers={isPicker ? markerEvents : undefined}
+            >
+              <Popup>
+                <div className="font-bold">{isPicker ? 'Ajusta tu ubicación' : 'Destino de Entrega'}</div>
+                {!isPicker && <div className="text-xs text-gray-500">{pedido?.ubicacion_entrega?.direccion}</div>}
+                {isPicker && <div className="text-xs text-gray-400">Puedes arrastrar este marcador para mayor precisión</div>}
+              </Popup>
+            </Marker>
+            {isPicker && <ChangeView center={destPos} />}
+          </>
         )}
       </MapContainer>
     </div>

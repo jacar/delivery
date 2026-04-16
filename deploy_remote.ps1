@@ -61,6 +61,8 @@ Upload-File -localFile "$laravelDeployPath\app\Http\Controllers\Api\UserControll
 Upload-File -localFile "$laravelDeployPath\app\Http\Controllers\Api\UploadController.php" -remotePath "app/Http/Controllers/Api/UploadController.php"
 Upload-File -localFile "$laravelDeployPath\app\Http\Controllers\Api\AuthController.php" -remotePath "app/Http/Controllers/Api/AuthController.php"
 Upload-File -localFile "$laravelDeployPath\app\Http\Controllers\Api\MessageController.php" -remotePath "app/Http/Controllers/Api/MessageController.php"
+Upload-File -localFile "$laravelDeployPath\app\Http\Controllers\Api\MotoTaxiController.php" -remotePath "app/Http/Controllers/Api/MotoTaxiController.php"
+
 
 # 2. Subir Frontend (dist) a la carpeta 'public'
 if (Test-Path $distPath) {

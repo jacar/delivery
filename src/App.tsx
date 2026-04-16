@@ -89,7 +89,7 @@ export default function App() {
           <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-6 lg:px-10">
               <div className="flex justify-between h-20 items-center">
-                <img src="https://www.webcincodev.com/blog/wp-content/uploads/2026/03/bg-800-x-800-px-1.png" alt="Logo" className="h-12 w-auto" />
+                <img src={`${import.meta.env.BASE_URL}banners/bg-7.webp`} alt="Logo" className="h-12 w-auto" />
                 <button 
                   onClick={() => setShowLogin(true)}
                   className="bg-gray-900 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500 transition-colors shadow-lg shadow-gray-900/10"
@@ -133,7 +133,7 @@ export default function App() {
                 style={{ perspective: '1000px' }}
               >
                 <img 
-                  src="https://www.webcincodev.com/blog/wp-content/uploads/2026/03/bg-800-x-800-px-1.png" 
+                  src={`${import.meta.env.BASE_URL}banners/bg-7.webp`} 
                   alt="DeliveryExpress Logo"
                   className="h-full w-auto object-contain"
                   referrerPolicy="no-referrer"
@@ -244,7 +244,7 @@ export default function App() {
       <footer className="bg-white border-t border-gray-100 py-12 px-6 lg:px-10 hidden md:block">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center">
-            <img src="https://www.webcincodev.com/blog/wp-content/uploads/2026/03/bg-800-x-800-px-1.png" alt="Logo" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
+            <img src={`${import.meta.env.BASE_URL}banners/bg-7.webp`} alt="Logo" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
           </div>
           
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">

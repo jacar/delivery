@@ -1,5 +1,5 @@
 import { Producto, Aliado } from '../types';
-const API_BASE_URL = 'https://www.webcincodev.com/b2b/public/api';
+import { API_BASE_URL } from './apiConfig';
 
 export const listenAliados = (callback: (aliados: Aliado[]) => void) => {
   const fetchLocal = async () => {
@@ -10,34 +10,40 @@ export const listenAliados = (callback: (aliados: Aliado[]) => void) => {
         console.error(`Error ${response.status} fetching allies:`, text);
         throw new Error('Error fetching allies');
       }
-      const data = await response.json();
-      const mappedData = data.map((item: any) => {
-        let parsedImagenes = [];
-        let parsedProductos = [];
+      const dataText = await response.text();
+      try {
+        const data = JSON.parse(dataText);
+        const mappedData = data.map((item: any) => {
+          let parsedImagenes = [];
+          let parsedProductos = [];
 
-        try {
-          if (item.imagenes) parsedImagenes = typeof item.imagenes === 'string' ? JSON.parse(item.imagenes) : item.imagenes;
-        } catch(e) {}
+          try {
+            if (item.imagenes) parsedImagenes = typeof item.imagenes === 'string' ? JSON.parse(item.imagenes) : item.imagenes;
+          } catch(e) {}
 
-        try {
-          if (item.productos) parsedProductos = typeof item.productos === 'string' ? JSON.parse(item.productos) : item.productos;
-        } catch(e) {}
+          try {
+            if (item.productos) parsedProductos = typeof item.productos === 'string' ? JSON.parse(item.productos) : item.productos;
+          } catch(e) {}
 
-        return {
-          ...item,
-          imagenes: parsedImagenes,
-          productos: parsedProductos
-        };
-      });
-      callback(mappedData);
+          return {
+            ...item,
+            imagenes: parsedImagenes,
+            productos: parsedProductos
+          };
+        });
+        callback(mappedData);
+      } catch (e) {
+        console.error("Error al parsear JSON de aliados:", e, "Contenido recibido:", dataText);
+        callback([]);
+      }
     } catch (e) {
-      console.error("Error al escuchar aliados (Detalle):", e);
+      console.error("Error al escuchar aliados (Red/API):", e);
       callback([]);
     }
   };
 
   fetchLocal();
-  const interval = setInterval(fetchLocal, 60000); // Cada 60s
+  const interval = setInterval(fetchLocal, 120000); // Cada 120s para optimizar recursos
   return () => clearInterval(interval);
 };
 

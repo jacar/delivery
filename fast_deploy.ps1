@@ -10,41 +10,56 @@ function Upload-File {
         $ftp = [System.Net.FtpWebRequest]::Create("ftp://$ftpServer/$remotePath")
         $ftp.Credentials = New-Object System.Net.NetworkCredential($user, $pass)
         $ftp.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
+        $ftp.UseBinary = $true
+        $ftp.UsePassive = $true
+        $ftp.KeepAlive = $false
+        
         $fileBytes = [System.IO.File]::ReadAllBytes($localFile)
         $ftp.ContentLength = $fileBytes.Length
         $rs = $ftp.GetRequestStream()
         $rs.Write($fileBytes, 0, $fileBytes.Length)
         $rs.Close()
+        $rs.Dispose()
         $response = $ftp.GetResponse()
         $response.Close()
-        Write-Host "OK"
+        Write-Host "OK" -ForegroundColor Green
     } catch {
         Write-Host "FALLO: $($_.Exception.Message)" -ForegroundColor Red
     }
 }
 
-Write-Host "🚀 DESPLIEGUE RÁPIDO: Solo Código React y Assets Críticos"
-
-# 1. index.html
-Upload-File -localFile "$basePath\dist\index.html" -remotePath "public/index.html"
-
-# 2. assets (Bundles JS/CSS)
-$assets = Get-ChildItem -Path "$basePath\dist\assets"
-foreach ($file in $assets) {
-    Upload-File -localFile $file.FullName -remotePath "public/assets/$($file.Name)"
-}
-
-# 3. manifest.json
-Upload-File -localFile "$basePath\dist\manifest.json" -remotePath "public/manifest.json"
-
-# 4. banners (New Local Assets)
-$bannersPath = "$basePath\dist\banners"
-if (Test-Path $bannersPath) {
-    $banners = Get-ChildItem -Path $bannersPath -Recurse | Where-Object { !$_.PSIsContainer }
-    foreach ($file in $banners) {
-        $rel = $file.FullName.Substring($bannersPath.Length + 1).Replace("\", "/")
-        Upload-File -localFile $file.FullName -remotePath "public/banners/$rel"
+function Create-RemoteDirectory {
+    param($remotePath)
+    $parts = $remotePath.Split("/")
+    $currentPath = ""
+    foreach ($part in $parts) {
+        if ([string]::IsNullOrWhiteSpace($part)) { continue }
+        $currentPath += "$part/"
+        try {
+            $ftp = [System.Net.FtpWebRequest]::Create("ftp://$ftpServer/$currentPath")
+            $ftp.Credentials = New-Object System.Net.NetworkCredential($user, $pass)
+            $ftp.Method = [System.Net.WebRequestMethods+Ftp]::MakeDirectory
+            $response = $ftp.GetResponse()
+            $response.Close()
+        } catch {}
     }
 }
 
-Write-Host "✅ DESPLIEGUE RÁPIDO FINALIZADO"
+# 1. Subir archivos 'dist' (Build) a 'public/' filtrando lo pesado
+Write-Host "Desplegando archivos de construccion (SOLO CODIGO)..."
+if (Test-Path "$basePath\dist") {
+    $files = Get-ChildItem -Path "$basePath\dist" -Recurse -Force | Where-Object { 
+        !$_.PSIsContainer -and 
+        $_.FullName -notmatch "fotogramas" -and 
+        $_.FullName -notmatch "banners"
+    }
+    foreach ($file in $files) {
+        $rel = $file.FullName.Substring(("$basePath\dist").Length + 1).Replace("\", "/")
+        $remote = "public/$rel"
+        $dirPart = [System.IO.Path]::GetDirectoryName($remote).Replace("\", "/")
+        if (![string]::IsNullOrWhiteSpace($dirPart)) { Create-RemoteDirectory -remotePath $dirPart }
+        Upload-File -localFile $file.FullName -remotePath $remote
+    }
+}
+
+Write-Host "FAST_DEPLOY_FINALIZADO"

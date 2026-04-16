@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../hooks/useAuth';
 import ScrollSequence from './ScrollSequence';
 
-const API_BASE_URL = 'https://www.webcincodev.com/b2b/public/api';
+import { API_BASE_URL } from '../services/apiConfig';
 
 interface HomeInformativoProps {
   onStart: () => void;
@@ -225,7 +225,7 @@ Estado: SOLICITUD DE ALTA`;
           <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>
             <div className="w-12 h-12 lg:w-24 lg:h-24 transition-transform duration-500 group-hover:scale-110">
               <img 
-                src="/banners/bg-7.png" 
+                src={`${import.meta.env.BASE_URL}banners/bg-7.webp`} 
                 alt="DeliveryExpress Logo" 
                 className="w-full h-full object-contain" 
                 fetchPriority="high"
@@ -314,15 +314,15 @@ Estado: SOLICITUD DE ALTA`;
           >
             {/* VERSIÓN MÓVIL */}
             <img 
-              src="/banners/mobile.svg" 
+              src={`${import.meta.env.BASE_URL}banners/mobile.webp`} 
               alt="Promo DeliveryExpress Móvil" 
-              className="block lg:hidden w-full h-[180px] sm:h-[220px] object-cover object-left"
+              className="block lg:hidden w-full h-auto object-contain"
               fetchPriority="high"
               loading="eager"
             />
             {/* VERSIÓN ESCRITORIO */}
             <img 
-              src="/banners/desktop.svg" 
+              src={`${import.meta.env.BASE_URL}banners/desktop.webp`} 
               alt="Promo DeliveryExpress Desktop" 
               className="hidden lg:block w-full h-auto object-contain"
               fetchPriority="high"
@@ -735,11 +735,11 @@ Estado: SOLICITUD DE ALTA`;
           loop 
           muted 
           playsInline 
-          poster="/banners/bg-7.png"
+          poster={`${import.meta.env.BASE_URL}banners/bg-7.webp`}
           className="absolute inset-0 w-full h-full object-cover opacity-60 z-0"
           preload="metadata"
         >
-          <source src="/banners/hero-video.webm" type="video/webm" />
+          <source src={`${import.meta.env.BASE_URL}banners/hero-video.webm`} type="video/webm" />
         </video>
 
         {/* OVERLAY DE COLOR (TINTE NARANJA) */}
@@ -750,7 +750,7 @@ Estado: SOLICITUD DE ALTA`;
           <div className="flex flex-col items-center gap-6 group cursor-pointer" onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>
             <div className="w-64 lg:w-[450px] transition-transform duration-500 group-hover:scale-110 drop-shadow-2xl">
                <img 
-                 src="/banners/logo-footer.png" 
+                 src={`${import.meta.env.BASE_URL}banners/logo-footer.webp`} 
                  alt="DeliveryExpress Logo" 
                  className="w-full h-auto" 
                  loading="lazy"
@@ -810,7 +810,7 @@ Estado: SOLICITUD DE ALTA`;
                   <>
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 text-center sm:text-left">
                        <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-50 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden border-4 border-gray-50 flex-shrink-0 shadow-lg">
-                          <img src={selectedAliado.logoUrl} alt={selectedAliado.nombre} className="w-full h-full object-cover" />
+                          <img src={selectedAliado.logoUrl} alt={selectedAliado.nombre} className="w-full h-full object-cover" loading="lazy" />
                        </div>
                        <div className="space-y-1 sm:pt-2">
                           <h3 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tighter uppercase leading-tight sm:leading-none whitespace-normal break-words">{selectedAliado.nombre}</h3>
@@ -924,6 +924,7 @@ Estado: SOLICITUD DE ALTA`;
                     src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/bg-7.png" 
                     alt="Logo" 
                     className="w-full h-full object-contain" 
+                    loading="lazy"
                   />
                 </div>
                 <div className="space-y-4">

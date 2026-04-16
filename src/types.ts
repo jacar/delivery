@@ -17,7 +17,7 @@ export interface Usuario {
 }
 
 export type PedidoEstado = 'disponible' | 'asignado' | 'en_camino' | 'entregado';
-export type PedidoTipo = 'compra' | 'recolección';
+export type PedidoTipo = 'compra' | 'recolección' | 'mototaxi';
 
 export interface Ubicacion {
   lat: number;
@@ -51,6 +51,15 @@ export interface Pedido {
   ubicacion_actual?: { lat: number; lng: number };
   last_update?: any;
   timestamp: any; // Firestore Timestamp
+}
+
+export interface TarifaMotoTaxi {
+  id: string;
+  nombre: string;
+  descripcion?: string;
+  precio: number;
+  activo: boolean;
+  timestamp?: any;
 }
 
 export interface Producto {

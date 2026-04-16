@@ -1,6 +1,5 @@
-import { Pedido, PedidoEstado, PedidoTipo, Ubicacion, Usuario, Mensaje, UserRole } from '../types';
-
-const API_BASE_URL = 'https://www.webcincodev.com/b2b/public/api';
+import { Pedido, PedidoEstado, PedidoTipo, Ubicacion, Usuario, Mensaje, UserRole, TarifaMotoTaxi } from '../types';
+import { API_BASE_URL } from './apiConfig';
 
 // Helper para peticiones API
 async function apiFetch(endpoint: string, options: any = {}) {
@@ -234,4 +233,72 @@ export const listenMensajes = (chatId: string, callback: (mensajes: Mensaje[]) =
   fetchLocal();
   const interval = setInterval(fetchLocal, 5000);
   return () => clearInterval(interval);
+};
+
+// ---------------------------------------------------
+// TARIFAS MOTO TAXI — API MySQL cPanel
+// ---------------------------------------------------
+
+export const getTarifasMotoTaxi = async (): Promise<TarifaMotoTaxi[]> => {
+  try {
+    const data = await apiFetch('/mototaxi-tarifas');
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.error('Error cargando tarifas moto taxi:', e);
+    return [];
+  }
+};
+
+export const crearTarifaMotoTaxi = async (datos: Omit<TarifaMotoTaxi, 'id' | 'timestamp'>): Promise<TarifaMotoTaxi> => {
+  return await apiFetch('/mototaxi-tarifas', {
+    method: 'POST',
+    body: datos
+  });
+};
+
+export const actualizarTarifaMotoTaxi = async (id: string, datos: Partial<TarifaMotoTaxi>): Promise<void> => {
+  await apiFetch(`/mototaxi-tarifas/${id}`, {
+    method: 'PUT',
+    body: datos
+  });
+};
+
+export const eliminarTarifaMotoTaxi = async (id: string): Promise<void> => {
+  await apiFetch(`/mototaxi-tarifas/${id}`, {
+    method: 'DELETE'
+  });
+};
+
+
+// ---------------------------------------------------
+// PRECIOS GENERALES (COMPRA/RECOLECCIÓN)
+// ---------------------------------------------------
+
+export const getTarifasGenerales = async () => {
+  try {
+    const all = await getTarifasMotoTaxi();
+    return {
+      compra: all.find(t => t.nombre === '___BASE_COMPRA___'),
+      recoleccion: all.find(t => t.nombre === '___BASE_RECOLECCION___')
+    };
+  } catch (e) {
+    return { compra: undefined, recoleccion: undefined };
+  }
+};
+
+export const guardarTarifaGeneral = async (tipo: 'compra' | 'recoleccion', precio: number) => {
+  const all = await getTarifasMotoTaxi();
+  const nombre = tipo === 'compra' ? '___BASE_COMPRA___' : '___BASE_RECOLECCION___';
+  const existente = all.find(t => t.nombre === nombre);
+
+  if (existente) {
+    return await actualizarTarifaMotoTaxi(existente.id, { precio });
+  } else {
+    return await crearTarifaMotoTaxi({
+      nombre,
+      precio,
+      descripcion: `Precio base por defecto para ${tipo}`,
+      activo: true
+    });
+  }
 };

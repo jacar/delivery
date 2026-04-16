@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\UploadController;
+use App\Http\Controllers\Api\MotoTaxiController;
 
 // Autenticación (Reemplazo de Firebase Auth)
 Route::post('/register', [AuthController::class, 'register']);
@@ -38,3 +39,9 @@ Route::post('/messages', [MessageController::class, 'store']);
 
 // Subida de Archivos (Reemplazo de Firebase Storage)
 Route::post('/upload', [UploadController::class, 'upload']);
+
+// Tarifas Moto Taxi
+Route::get('/mototaxi-tarifas', [MotoTaxiController::class, 'index']);
+Route::post('/mototaxi-tarifas', [MotoTaxiController::class, 'store']);
+Route::put('/mototaxi-tarifas/{id}', [MotoTaxiController::class, 'update']);
+Route::delete('/mototaxi-tarifas/{id}', [MotoTaxiController::class, 'destroy']);

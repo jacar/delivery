@@ -6,7 +6,7 @@ import LegalModal from './LegalModal';
 import { useAuth } from '../hooks/useAuth';
 import { Usuario } from '../types';
 
-const API_BASE_URL = 'https://www.webcincodev.com/b2b/public/api';
+import { API_BASE_URL } from '../services/apiConfig';
 
 interface AuthProps {
   onBack?: () => void;
@@ -39,7 +39,7 @@ export default function Auth({ onBack }: AuthProps) {
         });
         window.google.accounts.id.renderButton(
           document.getElementById("googleBtn"),
-          { theme: "outline", size: "large", width: "100%" }
+          { theme: "outline", size: "large", width: 320 }
         );
       }
     };
@@ -273,7 +273,7 @@ export default function Auth({ onBack }: AuthProps) {
       <LegalModal 
         isOpen={showLegal} 
         onClose={() => setShowLegal(false)} 
-        activeTab={legalTab} 
+        initialTab={legalTab} 
       />
     </div>
   );

@@ -43,7 +43,7 @@ function Create-RemoteDirectory {
 # 1. Subir archivos 'dist' (Build) a 'public/'
 Write-Host "Desplegando archivos de construcción (dist)..."
 if (Test-Path "$basePath\dist") {
-    $files = Get-ChildItem -Path "$basePath\dist" -Recurse | Where-Object { !$_.PSIsContainer }
+    $files = Get-ChildItem -Path "$basePath\dist" -Recurse -Force | Where-Object { !$_.PSIsContainer }
     foreach ($file in $files) {
         $rel = $file.FullName.Substring(("$basePath\dist").Length + 1).Replace("\", "/")
         $remote = "public/$rel"

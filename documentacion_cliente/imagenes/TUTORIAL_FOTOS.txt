@@ -1,0 +1,5 @@
+INSTRUCCIONES:
+1. Toma las capturas de pantalla de la aplicación según lo indican los "[📸 PEGAR AQUÍ CAPTURA DE PANTALLA]" en el archivo Manual_Completo.md.
+2. Si prefieres insertarlas en el Markdown directamente, puedes arrastrar las fotos aquí o usar la sintaxis:
+![](./imagenes/foto_login.png)
+3. Luego, una vez estés feliz con el manual, corre el comando en tu terminal principal: npm run generar-manual

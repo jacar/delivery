@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { listenTodosLosPedidos, listenUsuarios, actualizarRolUsuario, asignarPedido, crearUsuarioPersonal, actualizarEstadoPedido } from '../services/pedidoService';
 import { Pedido, Usuario, UserRole } from '../types';
-import { LayoutDashboard, Clock, CheckCircle2, Bike, Package, BarChart3, Users, TrendingUp, Shield, Store, User as UserIcon, MoreVertical, Loader2, Send, Edit2, UserPlus, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { LayoutDashboard, Clock, CheckCircle2, Bike, Package, BarChart3, Users, TrendingUp, Shield, Store, User as UserIcon, MoreVertical, Loader2, Send, Edit2, UserPlus, Mail, Lock, Eye, EyeOff, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import DriverModal from './DriverModal';
 import UserModal from './UserModal';
 import AliadosAdmin from './AliadosAdmin';
+import MotoTaxiAdmin from './MotoTaxiAdmin';
+import GeneralTarifasAdmin from './GeneralTarifasAdmin';
 interface AdminViewProps {
   activeTab?: string;
 }
@@ -23,16 +25,18 @@ export default function AdminView({ activeTab: propActiveTab }: AdminViewProps) 
   const [editingUser, setEditingUser] = useState<Usuario | null>(null);
   const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'stats' | 'pedidos' | 'usuarios' | 'registro' | 'aliados'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'pedidos' | 'usuarios' | 'registro' | 'aliados' | 'mototaxi' | 'general_tarifas'>('stats');
 
   useEffect(() => {
     if (propActiveTab) {
-      const tabMap: { [key: string]: 'stats' | 'pedidos' | 'usuarios' | 'registro' | 'aliados' } = {
+      const tabMap: { [key: string]: 'stats' | 'pedidos' | 'usuarios' | 'registro' | 'aliados' | 'mototaxi' | 'general_tarifas' } = {
         'home': 'stats',
         'pedidos': 'pedidos',
         'usuarios': 'usuarios',
         'registro': 'registro',
-        'aliados': 'aliados'
+        'aliados': 'aliados',
+        'mototaxi': 'mototaxi',
+        'config': 'general_tarifas'
       };
       if (tabMap[propActiveTab]) {
         setActiveTab(tabMap[propActiveTab]);
@@ -183,6 +187,8 @@ export default function AdminView({ activeTab: propActiveTab }: AdminViewProps) 
             { id: 'pedidos', label: 'Pedidos', icon: Package },
             { id: 'usuarios', label: 'Usuarios', icon: Users },
             { id: 'aliados', label: 'Comercios', icon: Store },
+            { id: 'mototaxi', label: 'Moto Taxi', icon: Bike },
+            { id: 'general_tarifas', label: 'Tarifas Gral', icon: Settings },
             { id: 'registro', label: 'Registrar', icon: UserPlus },
           ].map((tab) => (
             <button
@@ -643,6 +649,29 @@ export default function AdminView({ activeTab: propActiveTab }: AdminViewProps) 
             className="w-full"
           >
             <AliadosAdmin />
+          </motion.div>
+        )}
+
+        {activeTab === 'mototaxi' && (
+          <motion.div
+            key="mototaxi"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full"
+          >
+            <MotoTaxiAdmin />
+          </motion.div>
+        )}
+        {activeTab === 'general_tarifas' && (
+          <motion.div
+            key="general_tarifas"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full"
+          >
+            <GeneralTarifasAdmin />
           </motion.div>
         )}
       </AnimatePresence>

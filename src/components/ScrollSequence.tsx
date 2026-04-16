@@ -19,7 +19,7 @@ const ScrollSequence = () => {
 
         for (let i = 0; i < totalFrames; i++) {
             const img = new Image();
-            img.src = `/b2b/public/fotogramas/Oh%20sagrado%20coraz%C3%B3n%20de%20Jesus_${i}.jpg`;
+            img.src = `${import.meta.env.BASE_URL}fotogramas/Oh%20sagrado%20coraz%C3%B3n%20de%20Jesus_${i}.jpg`;
             img.onload = () => {
                 loadedCount++;
                 setProgress(Math.round((loadedCount / totalFrames) * 100));
