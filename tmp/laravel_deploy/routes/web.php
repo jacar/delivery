@@ -43,10 +43,16 @@ Route::get('/install-db', function () {
                 $table->text('logoUrl')->nullable();
                 $table->text('descripcion')->nullable();
                 $table->string('whatsapp')->nullable();
-                $table->json('imagenes')->nullable();
-                $table->json('productos')->nullable();
+                $table->longText('imagenes')->nullable();
+                $table->longText('productos')->nullable();
                 $table->timestamp('timestamp')->nullable();
                 $table->timestamps();
+            });
+        } else {
+            // Reparar/Ampliar capacidad si ya existe
+            \Illuminate\Support\Facades\Schema::table('allies', function ($table) {
+                $table->longText('imagenes')->nullable()->change();
+                $table->longText('productos')->nullable()->change();
             });
         }
 

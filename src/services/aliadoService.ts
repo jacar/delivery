@@ -1,6 +1,8 @@
 import { Producto, Aliado } from '../types';
 import { API_BASE_URL } from './apiConfig';
 
+let refreshTrigger: () => void = () => {};
+
 export const listenAliados = (callback: (aliados: Aliado[]) => void) => {
   const fetchLocal = async () => {
     try {
@@ -42,12 +44,18 @@ export const listenAliados = (callback: (aliados: Aliado[]) => void) => {
     }
   };
 
+  refreshTrigger = fetchLocal;
   fetchLocal();
-  const interval = setInterval(fetchLocal, 120000); // Cada 120s para optimizar recursos
+  const interval = setInterval(fetchLocal, 60000); // Reducido a 60s
   return () => clearInterval(interval);
 };
 
+export const triggerRefreshAliados = () => {
+  refreshTrigger();
+};
+
 export const crearAliado = async (
+  id: string,
   nombre: string, 
   logoUrl: string, 
   descripcion: string = '', 
@@ -55,11 +63,11 @@ export const crearAliado = async (
   imagenes: string[] = [],
   productos: Producto[] = []
 ): Promise<void> => {
-  await fetch(`${API_BASE_URL}/allies`, {
+  const response = await fetch(`${API_BASE_URL}/allies`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      id: Math.random().toString(36).substr(2, 9),
+      id,
       nombre,
       logoUrl,
       descripcion,
@@ -68,6 +76,10 @@ export const crearAliado = async (
       productos: JSON.stringify(productos)
     })
   });
+  
+  if (response.ok) {
+    triggerRefreshAliados();
+  }
 };
 
 export const actualizarAliado = async (id: string, data: Partial<Aliado>) => {
@@ -79,17 +91,25 @@ export const actualizarAliado = async (id: string, data: Partial<Aliado>) => {
     transformedData.productos = JSON.stringify(data.productos);
   }
 
-  await fetch(`${API_BASE_URL}/allies/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/allies/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(transformedData)
   });
+
+  if (response.ok) {
+    triggerRefreshAliados();
+  }
 };
 
 export const eliminarAliado = async (id: string) => {
-  await fetch(`${API_BASE_URL}/allies/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/allies/${id}`, {
     method: 'DELETE'
   });
+
+  if (response.ok) {
+    triggerRefreshAliados();
+  }
 };
 
 export const subirImagen = async (path: string, file: File | Blob): Promise<string> => {
@@ -110,3 +130,4 @@ export const subirImagen = async (path: string, file: File | Blob): Promise<stri
     return "https://via.placeholder.com/150"; 
   }
 };
+
