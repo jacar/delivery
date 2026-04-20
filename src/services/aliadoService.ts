@@ -77,9 +77,12 @@ export const crearAliado = async (
     })
   });
   
-  if (response.ok) {
-    triggerRefreshAliados();
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error || 'Error al crear el aliado en el servidor');
   }
+  
+  triggerRefreshAliados();
 };
 
 export const actualizarAliado = async (id: string, data: Partial<Aliado>) => {
@@ -97,9 +100,12 @@ export const actualizarAliado = async (id: string, data: Partial<Aliado>) => {
     body: JSON.stringify(transformedData)
   });
 
-  if (response.ok) {
-    triggerRefreshAliados();
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error || 'Error al actualizar el aliado');
   }
+
+  triggerRefreshAliados();
 };
 
 export const eliminarAliado = async (id: string) => {
@@ -107,9 +113,12 @@ export const eliminarAliado = async (id: string) => {
     method: 'DELETE'
   });
 
-  if (response.ok) {
-    triggerRefreshAliados();
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error || 'Error al eliminar el aliado');
   }
+
+  triggerRefreshAliados();
 };
 
 export const subirImagen = async (path: string, file: File | Blob): Promise<string> => {

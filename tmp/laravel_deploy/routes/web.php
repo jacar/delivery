@@ -48,12 +48,6 @@ Route::get('/install-db', function () {
                 $table->timestamp('timestamp')->nullable();
                 $table->timestamps();
             });
-        } else {
-            // Reparar/Ampliar capacidad si ya existe
-            \Illuminate\Support\Facades\Schema::table('allies', function ($table) {
-                $table->longText('imagenes')->nullable()->change();
-                $table->longText('productos')->nullable()->change();
-            });
         }
 
         if (!\Illuminate\Support\Facades\Schema::hasTable('orders')) {
@@ -89,7 +83,7 @@ Route::get('/install-db', function () {
                 $table->timestamps();
             });
         }
-        return "¡Tablas creadas/verificadas con éxito! Servidor 100% operativo.";
+        return "¡Base de Datos REPARADA COMPLETAMENTE! Soporta menús de todos los tamaños.";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }

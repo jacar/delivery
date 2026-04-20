@@ -28,8 +28,8 @@
 
     RewriteEngine On
     
-    # IMPORTANTE: RewriteBase para subdirectorios
-    RewriteBase /b2b/public/
+    # IMPORTANTE: RewriteBase para dominio principal
+    RewriteBase /
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

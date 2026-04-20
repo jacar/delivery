@@ -1,5 +1,5 @@
-$ftpServer = "ftp.strongmeropower.com"
-$user = "rapi@webcincodev.com"
+$ftpServer = "192.64.85.18"
+$user = "delivery"
 $pass = "Forastero_938"
 $basePath = "C:\Users\Dev\Downloads\delivery final"
 $distPath = "$basePath\dist"

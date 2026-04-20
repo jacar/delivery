@@ -34,9 +34,10 @@ export default function Auth({ onBack }: AuthProps) {
     const initializeGoogle = () => {
       if (window.google) {
         window.google.accounts.id.initialize({
-          client_id: "756198742846-719d964dblrftm3uglhrnplpljn0trq3.apps.googleusercontent.com",
+          client_id: "1091184859542-08v05fjt73llrkjcrb9ord7van58rkuk.apps.googleusercontent.com",
           callback: handleGoogleResponse
         });
+
         window.google.accounts.id.renderButton(
           document.getElementById("googleBtn"),
           { theme: "outline", size: "large", width: 320 }
@@ -74,24 +75,27 @@ export default function Auth({ onBack }: AuthProps) {
         body: JSON.stringify({
           email: googleUser.email,
           nombre: googleUser.name,
-          google_id: googleUser.sub
+          google_id: googleUser.sub,
+          fotoUrl: googleUser.picture
         })
       });
 
       if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Server Error Response (auth/google):", errorText);
-        throw new Error(`Error ${res.status}: ${res.statusText}`);
+        const errorData = await res.json().catch(() => ({}));
+        const msg = errorData.message || errorData.error || `Error ${res.status}: ${res.statusText}`;
+        console.error("Server Error Response (auth/google):", errorData);
+        throw new Error(msg);
       }
       
       const userData = await res.json();
       
       login(userData);
-      toast.success('¡Bienvenido con Google!');
+      toast.success(`¡Bienvenido, ${userData.nombre}!`);
     } catch (error: any) {
       console.error("Google Auth Error Detail:", error);
-      toast.error('Error al iniciar sesión con Google');
+      toast.error(`Error al iniciar sesión: ${error.message}`);
     } finally {
+
       setLoading(false);
     }
   };

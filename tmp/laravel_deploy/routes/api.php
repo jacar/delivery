@@ -45,3 +45,23 @@ Route::get('/mototaxi-tarifas', [MotoTaxiController::class, 'index']);
 Route::post('/mototaxi-tarifas', [MotoTaxiController::class, 'store']);
 Route::put('/mototaxi-tarifas/{id}', [MotoTaxiController::class, 'update']);
 Route::delete('/mototaxi-tarifas/{id}', [MotoTaxiController::class, 'destroy']);
+
+// Ruta de reparación de base de datos (versión API para evitar redirecciones)
+Route::get('/install-db', function () {
+    try {
+        // Reparar/Ampliar capacidad de columnas de aliados
+        try {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE allies MODIFY COLUMN imagenes LONGTEXT NULL");
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE allies MODIFY COLUMN productos LONGTEXT NULL");
+        } catch (\Exception $e) {
+            // Reintento con Schema si falla el ALTER (ej. SQLite)
+            \Illuminate\Support\Facades\Schema::table('allies', function ($table) {
+                $table->longText('imagenes')->nullable()->change();
+                $table->longText('productos')->nullable()->change();
+            });
+        }
+        return response()->json(['success' => true, 'mensaje' => '¡Base de Datos REPARADA COMPLETAMENTE!']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});

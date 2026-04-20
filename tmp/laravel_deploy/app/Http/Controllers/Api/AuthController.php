@@ -77,33 +77,58 @@ class AuthController extends Controller {
 
     // Autenticación con Google
     public function googleAuth(Request $request) {
-        $email     = $request->email;
-        $nombre    = $request->nombre;
+        try {
+            $email    = $request->email;
+            $nombre   = $request->nombre;
+            $googleId = $request->google_id;
+            $fotoUrl  = $request->fotoUrl;
 
-        if (!$email) return response()->json(['error' => 'Email requerido'], 400);
+            if (!$email) {
+                return response()->json(['error' => 'Email requerido'], 400);
+            }
 
-        $user = DB::table('users')->where('email', $email)->first();
+            // Buscar usuario por email o google_id
+            $user = DB::table('users')
+                ->where('email', $email)
+                ->orWhere('id', $googleId)
+                ->first();
 
-        if ($user) {
-            DB::table('users')->where('email', $email)->update([
-                'nombre'     => $nombre,
-                'updated_at' => now()
-            ]);
-            $user = DB::table('users')->where('email', $email)->first();
-        } else {
-            $uid = (string) Str::uuid();
-            DB::table('users')->insert([
-                'id'         => $uid,
-                'uid'        => $uid,
-                'nombre'     => $nombre,
-                'email'      => $email,
-                'rol'        => 'cliente',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            $user = DB::table('users')->where('uid', $uid)->first();
+            if ($user) {
+                // Actualizar datos si es necesario
+                $updateData = [
+                    'nombre'     => $nombre,
+                    'updated_at' => now()
+                ];
+                if ($fotoUrl) $updateData['fotoUrl'] = $fotoUrl;
+                
+                DB::table('users')->where('id', $user->id)->update($updateData);
+                $user = DB::table('users')->where('id', $user->id)->first();
+            } else {
+                // Crear nuevo usuario asumiendo rol 'cliente'
+                $id = $googleId ?: (string) Str::uuid();
+                DB::table('users')->insert([
+                    'id'         => $id,
+                    'uid'        => $id,
+                    'nombre'     => $nombre,
+                    'email'      => $email,
+                    'fotoUrl'    => $fotoUrl,
+                    'rol'        => 'cliente',
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+                $user = DB::table('users')->where('id', $id)->first();
+            }
+
+            return response()->json($user);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error de servidor en Google Auth',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
-
-        return response()->json($user);
     }
+
 }

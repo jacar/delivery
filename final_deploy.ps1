@@ -1,5 +1,5 @@
-$ftpServer = "ftp.strongmeropower.com"
-$user = "rapi@webcincodev.com"
+$ftpServer = "192.64.85.18"
+$user = "delivery"
 $pass = "Forastero_938"
 $basePath = "C:\Users\Dev\Downloads\delivery final"
 
@@ -40,21 +40,22 @@ function Create-RemoteDirectory {
     }
 }
 
-# 1. Subir archivos 'dist' (Build) a 'public/'
-Write-Host "Desplegando archivos de construcción (dist)..."
+# 1. Subir archivos 'dist' (Build) a 'public_html/' (cPanel estándar)
+Write-Host "Desplegando archivos de construcción (dist) a public_html/..."
 if (Test-Path "$basePath\dist") {
-    $files = Get-ChildItem -Path "$basePath\dist" -Recurse -Force | Where-Object { !$_.PSIsContainer }
+    $files = Get-ChildItem -Path "$basePath\dist" -Recurse -Force | Where-Object { !$_.PSIsContainer -and $_.FullName -notmatch "fotogramas" }
     foreach ($file in $files) {
         $rel = $file.FullName.Substring(("$basePath\dist").Length + 1).Replace("\", "/")
-        $remote = "public/$rel"
+        $remote = "public_html/$rel"
         $dirPart = [System.IO.Path]::GetDirectoryName($remote).Replace("\", "/")
         if (![string]::IsNullOrWhiteSpace($dirPart)) { Create-RemoteDirectory -remotePath $dirPart }
         Upload-File -localFile $file.FullName -remotePath $remote
     }
 }
 
-# 2. Subir script de descompresión actualizado a 'public/'
-Write-Host "Subiendo script de descompresión..."
-Upload-File -localFile "$basePath\unzip_frames.php" -remotePath "public/unzip_frames.php"
+# 2. Subir script de descompresión y herramientas a 'public_html/'
+Write-Host "Subiendo scripts de utilidad..."
+Upload-File -localFile "$basePath\unzip_frames.php" -remotePath "public_html/unzip_frames.php"
+Upload-File -localFile "$basePath\fotogramas.zip" -remotePath "fotogramas.zip"
 
-Write-Host "DESPLIEGE_DE_PRODUCCION_FINALIZADO"
+Write-Host "DESPLIEGUE_DE_PRODUCCION_FINALIZADO"

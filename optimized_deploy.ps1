@@ -1,7 +1,9 @@
-$ftpServer = "ftp.strongmeropower.com"
-$user = "rapi@webcincodev.com"
+$ftpServer = "192.64.85.18"
+$user = "delivery"
 $pass = "Forastero_938"
 $basePath = "C:\Users\Dev\Downloads\delivery final"
+$distPath = "$basePath\dist"
+$laravelDeployPath = "$basePath\tmp\laravel_deploy"
 
 function Upload-File {
     param($localFile, $remotePath)
@@ -40,19 +42,45 @@ function Create-RemoteDirectory {
     }
 }
 
-# 0. Crear directorios base
-Create-RemoteDirectory -remotePath "src/components"
-Create-RemoteDirectory -remotePath "src/fotogramas"
-Create-RemoteDirectory -remotePath "public"
+# 1. Subir Backend (Laravel) - Estructura esencial
+Write-Host "--- DESPLEGANDO BACKEND ---"
+$backendFiles = @(
+    @{ local = "$laravelDeployPath\.env"; remote = ".env" },
+    @{ local = "$laravelDeployPath\bootstrap\app.php"; remote = "bootstrap/app.php" },
+    @{ local = "$laravelDeployPath\routes\api.php"; remote = "routes/api.php" },
+    @{ local = "$laravelDeployPath\routes\web.php"; remote = "routes/web.php" }
+)
 
-# 1. Subir archivos de código
-Upload-File -localFile "$basePath\src\components\ScrollSequence.tsx" -remotePath "src/components/ScrollSequence.tsx"
-Upload-File -localFile "$basePath\src\components\HomeInformativo.tsx" -remotePath "src/components/HomeInformativo.tsx"
+# Controladores
+$controllers = Get-ChildItem "$laravelDeployPath\app\Http\Controllers\Api" -Filter *.php
+foreach ($c in $controllers) {
+    $backendFiles += @{ local = $c.FullName; remote = "app/Http/Controllers/Api/$($c.Name)" }
+}
 
-# 2. Subir ZIP de fotogramas
+foreach ($item in $backendFiles) {
+    $dirPart = [System.IO.Path]::GetDirectoryName($item.remote).Replace("\", "/")
+    if (![string]::IsNullOrWhiteSpace($dirPart)) { Create-RemoteDirectory -remotePath $dirPart }
+    Upload-File -localFile $item.local -remotePath $item.remote
+}
+
+# 2. Subir Frontend (dist) EXCLUYENDO fotogramas/
+Write-Host "--- DESPLEGANDO FRONTEND (Optimizado) ---"
+if (Test-Path $distPath) {
+    $files = Get-ChildItem -Path $distPath -Recurse | Where-Object { !$_.PSIsContainer -and $_.FullName -notmatch "fotogramas" }
+    foreach ($file in $files) {
+        $relative = $file.FullName.Substring($distPath.Length + 1).Replace("\", "/")
+        $remote = "public_html/$relative"
+        $dirPart = [System.IO.Path]::GetDirectoryName($remote).Replace("\", "/")
+        if (![string]::IsNullOrWhiteSpace($dirPart)) { Create-RemoteDirectory -remotePath $dirPart }
+        Upload-File -localFile $file.FullName -remotePath $remote
+    }
+}
+
+# 3. Subir ZIP, Backup SQL y Scripts de utilidad
+Write-Host "--- DESPLEGANDO ASSETS Y HERRAMIENTAS ---"
 Upload-File -localFile "$basePath\fotogramas.zip" -remotePath "fotogramas.zip"
+Upload-File -localFile "$basePath\backup.sql" -remotePath "backup.sql"
+Upload-File -localFile "$basePath\unzip_frames.php" -remotePath "public_html/unzip_frames.php"
+Upload-File -localFile "$basePath\tmp\laravel_deploy\public\import_db.php" -remotePath "public_html/import_db.php"
 
-# 3. Subir script de descompresión a 'public/'
-Upload-File -localFile "$basePath\unzip_frames.php" -remotePath "public/unzip_frames.php"
-
-Write-Host "PROCESO_DE_SUBIDA_COMPLETO"
+Write-Host "--- DESPLIEGUE COMPLETADO ---"

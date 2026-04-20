@@ -6,18 +6,44 @@ use Illuminate\Support\Facades\DB;
 
 class AliadoController extends Controller {
     public function index() {
-        return response()->json(DB::table('allies')->get());
+        try {
+            return response()->json(DB::table('allies')->get());
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
+
     public function store(Request $request) {
-        DB::table('allies')->insert($request->all() + ['created_at' => now()]);
-        return response()->json(['success' => true]);
+        try {
+            $data = $request->only(['id', 'nombre', 'logoUrl', 'descripcion', 'whatsapp', 'imagenes', 'productos']);
+            $data['created_at'] = now();
+            $data['updated_at'] = now();
+            
+            DB::table('allies')->insert($data);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
+
     public function update(Request $request, $id) {
-        DB::table('allies')->where('id', $id)->update($request->except(['id', 'created_at']) + ['updated_at' => now()]);
-        return response()->json(['success' => true]);
+        try {
+            $data = $request->only(['nombre', 'logoUrl', 'descripcion', 'whatsapp', 'imagenes', 'productos']);
+            $data['updated_at'] = now();
+            
+            DB::table('allies')->where('id', $id)->update($data);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
+
     public function destroy($id) {
-        DB::table('allies')->where('id', $id)->delete();
-        return response()->json(['success' => true]);
+        try {
+            DB::table('allies')->where('id', $id)->delete();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }
