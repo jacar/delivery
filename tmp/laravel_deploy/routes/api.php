@@ -46,22 +46,116 @@ Route::post('/mototaxi-tarifas', [MotoTaxiController::class, 'store']);
 Route::put('/mototaxi-tarifas/{id}', [MotoTaxiController::class, 'update']);
 Route::delete('/mototaxi-tarifas/{id}', [MotoTaxiController::class, 'destroy']);
 
-// Ruta de reparación de base de datos (versión API para evitar redirecciones)
-Route::get('/install-db', function () {
+// =========================================================================
+// RUTA DE REPARACIÓN INTEGRAL (EJECUTAR UNA VEZ EN PRODUCCIÓN)
+// =========================================================================
+// =========================================================================
+// RUTA DE REPARACIÓN INTEGRAL (EJECUTAR EN PRODUCCIÓN)
+// =========================================================================
+Route::get('/repair-all', function () {
+    $results = [];
+
+    // 1. REPARAR TABLA ALLIES (ESTRUCTURA)
     try {
-        // Reparar/Ampliar capacidad de columnas de aliados
-        try {
-            \Illuminate\Support\Facades\DB::statement("ALTER TABLE allies MODIFY COLUMN imagenes LONGTEXT NULL");
-            \Illuminate\Support\Facades\DB::statement("ALTER TABLE allies MODIFY COLUMN productos LONGTEXT NULL");
-        } catch (\Exception $e) {
-            // Reintento con Schema si falla el ALTER (ej. SQLite)
-            \Illuminate\Support\Facades\Schema::table('allies', function ($table) {
-                $table->longText('imagenes')->nullable()->change();
-                $table->longText('productos')->nullable()->change();
-            });
-        }
-        return response()->json(['success' => true, 'mensaje' => '¡Base de Datos REPARADA COMPLETAMENTE!']);
+        \Illuminate\Support\Facades\DB::statement("ALTER TABLE allies MODIFY COLUMN imagenes LONGTEXT NULL");
+        \Illuminate\Support\Facades\DB::statement("ALTER TABLE allies MODIFY COLUMN productos LONGTEXT NULL");
+        $results['allies_structure'] = 'Estructura de tabla aliados verificada/actualizada.';
     } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
+        $results['allies_structure'] = 'Omitido o ya actualizado: ' . $e->getMessage();
     }
+    
+    // 2. CORREGIR URLS DE IMÁGENES ROTAS
+    try {
+        $oldBases = [
+            'www.webcincodev.com/b2b/public',
+            'webcincodev.com/b2b/public',
+            'amvdev.com/b2b/public',
+            'amvdev.com',
+            'deliveryexpress.com.co'
+        ];
+        $newBase = 'deliveryexpressmg.com';
+        
+        $totalLogosFixed = 0;
+        $totalItemsFixed = 0;
+
+        foreach ($oldBases as $oldBase) {
+            // Corregir logoUrl (String simple)
+            $logoFixCount = \Illuminate\Support\Facades\DB::table('allies')
+                ->where('logoUrl', 'LIKE', "%$oldBase%")
+                ->update([
+                    'logoUrl' => \Illuminate\Support\Facades\DB::raw("REPLACE(logoUrl, '$oldBase', '$newBase')")
+                ]);
+            $totalLogosFixed += $logoFixCount;
+        }
+
+        // Corregir imagenes y productos (JSON o LongText con JSON)
+        \Illuminate\Support\Facades\DB::table('allies')->get()->each(function ($aliado) use ($oldBases, $newBase, &$totalItemsFixed) {
+            $updated = false;
+            $newImagenes = $aliado->imagenes;
+            $newProductos = $aliado->productos;
+
+            foreach ($oldBases as $oldBase) {
+                if (str_contains($newImagenes, $oldBase)) {
+                    $newImagenes = str_replace($oldBase, $newBase, $newImagenes);
+                    $updated = true;
+                }
+                if (str_contains($newProductos, $oldBase)) {
+                    $newProductos = str_replace($oldBase, $newBase, $newProductos);
+                    $updated = true;
+                }
+            }
+
+            if ($updated) {
+                \Illuminate\Support\Facades\DB::table('allies')->where('id', $aliado->id)->update([
+                    'imagenes' => $newImagenes,
+                    'productos' => $newProductos
+                ]);
+                $totalItemsFixed++;
+            }
+        });
+
+        $results['image_fix'] = "URLs corregidas: $totalLogosFixed logos y $totalItemsFixed registros de galería/productos.";
+    } catch (\Exception $e) {
+        $results['image_fix'] = 'Error en reparación de imágenes: ' . $e->getMessage();
+    }
+
+    // 3. REPARAR TABLA MOTOTAXI_TARIFAS
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('mototaxi_tarifas')) {
+            \Illuminate\Support\Facades\Schema::create('mototaxi_tarifas', function ($table) {
+                $table->increments('id');
+                $table->string('nombre', 150);
+                $table->text('descripcion')->nullable();
+                $table->decimal('precio', 10, 2)->default(0);
+                $table->boolean('activo')->default(true);
+                $table->timestamps();
+            });
+            $results['tariffs_table'] = 'Tabla mototaxi_tarifas CREADA.';
+        } else {
+            $results['tariffs_table'] = 'Tabla mototaxi_tarifas ya EXISTE.';
+        }
+    } catch (\Exception $e) {
+        $results['tariffs_error'] = 'Error en tabla tarifas: ' . $e->getMessage();
+    }
+
+    // 4. LIMPIEZA DE CACHÉ
+    try {
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        $results['cache'] = 'Caché de Laravel limpiada con éxito.';
+    } catch (\Exception $e) {
+        $results['cache'] = 'Aviso: Error al limpiar caché (puede requerir permisos): ' . $e->getMessage();
+    }
+
+    return response()->json([
+        'success' => true,
+        'mensaje' => '¡Sistema reparado integralmente para el nuevo dominio!',
+        'dominio_detectado' => url('/'),
+        'detalles' => $results
+    ]);
+});
+
+// Ruta heredada de instalación (simplificada)
+Route::get('/install-db', function () {
+    return redirect('/api/repair-all');
 });

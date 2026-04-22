@@ -664,7 +664,7 @@ Estado: SOLICITUD DE ALTA`;
             >
               <div className="aspect-[16/9] w-full overflow-hidden bg-gray-50">
                 <img 
-                  src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/restaurante.jpg" 
+                  src={`${import.meta.env.BASE_URL}banners/bg-7.webp`} 
                   alt="Registra tu Restaurante" 
                   className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110" 
                   loading="lazy"
@@ -698,7 +698,7 @@ Estado: SOLICITUD DE ALTA`;
             >
               <div className="aspect-[16/9] w-full overflow-hidden bg-gray-50">
                 <img 
-                  src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/abasto.jpg" 
+                  src={`${import.meta.env.BASE_URL}banners/bg-7.webp`} 
                   alt="Registra tu Comercio" 
                   className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110" 
                   loading="lazy"
@@ -921,7 +921,7 @@ Estado: SOLICITUD DE ALTA`;
               <div className="md:w-1/3 bg-orange-600 p-12 flex flex-col justify-between items-center text-center">
                 <div className="w-32 h-32 brightness-0 invert drop-shadow-xl">
                   <img 
-                    src="https://www.webcincodev.com/blog/wp-content/uploads/2026/04/bg-7.png" 
+                    src={`${import.meta.env.BASE_URL}banners/bg-7.png`} 
                     alt="Logo" 
                     className="w-full h-full object-contain" 
                     loading="lazy"

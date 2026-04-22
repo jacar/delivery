@@ -326,7 +326,7 @@ export default function ClienteView({ userData, activeTab: propActiveTab }: Clie
           className="relative overflow-hidden rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all bg-gray-900"
         >
           <video 
-            src="https://www.webcincodev.com/blog/wp-content/uploads/2026/03/DELIVERY-EXPRESS_1.webm" 
+            src={`${import.meta.env.BASE_URL}banners/hero-video.webm`} 
             className="w-full h-auto object-cover"
             style={{ 
               transform: 'translateZ(0)',
