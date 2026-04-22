@@ -126,12 +126,12 @@ export default function ClienteView({ userData, activeTab: propActiveTab }: Clie
       
       const rawRecogidaDir = selectedAliado.direccion || `Local de ${selectedAliado.nombre}`;
       const ubicacionRecogida = {
-        lat: selectedAliado.lat || 10.4806,
-        lng: selectedAliado.lng || -66.9036,
+        lat: selectedAliado.lat || 9.8159,
+        lng: selectedAliado.lng || -70.9324,
         direccion: rawRecogidaDir
       };
 
-      const finalEntregaCoords = entregaCoords || currentCoords || { lat: 10.4856, lng: -66.8986 };
+      const finalEntregaCoords = entregaCoords || currentCoords || { lat: 9.8159, lng: -70.9324 };
       const ubicacionEntrega = {
         lat: finalEntregaCoords.lat,
         lng: finalEntregaCoords.lng,
@@ -176,8 +176,8 @@ export default function ClienteView({ userData, activeTab: propActiveTab }: Clie
       }
 
       // Validar que tengamos coordenadas (al menos las por defecto si no se buscaron)
-      const finalRecogidaCoords = recogidaCoords || currentCoords || { lat: 10.4806, lng: -66.9036 };
-      const finalEntregaCoords = entregaCoords || (currentCoords ? { lat: currentCoords.lat + 0.005, lng: currentCoords.lng + 0.005 } : { lat: 10.4906, lng: -66.8936 });
+      const finalRecogidaCoords = recogidaCoords || currentCoords || { lat: 9.8159, lng: -70.9324 };
+      const finalEntregaCoords = entregaCoords || (currentCoords ? { lat: currentCoords.lat + 0.005, lng: currentCoords.lng + 0.005 } : { lat: 9.8259, lng: -70.9224 });
 
       const ubicacionRecogida = { 
         lat: finalRecogidaCoords.lat, 

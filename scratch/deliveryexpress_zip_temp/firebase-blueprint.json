@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "Usuario": {
+      "title": "Usuario",
+      "description": "Perfil de usuario del sistema",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "ID único de Firebase Auth" },
+        "nombre": { "type": "string", "description": "Nombre completo" },
+        "rol": { "type": "string", "enum": ["admin", "motorizado", "cliente"], "description": "Rol del usuario" },
+        "fcmToken": { "type": "string", "description": "Token para notificaciones push" },
+        "telefono": { "type": "string", "description": "Número de contacto" },
+        "tipoVehiculo": { "type": "string", "description": "Tipo de vehículo (Moto, Carro, etc)" },
+        "documentoId": { "type": "string", "description": "ID o Documento de identidad" },
+        "fotoUrl": { "type": "string", "description": "URL de la foto de perfil" }
+      },
+      "required": ["uid", "nombre", "rol"]
+    },
+    "Pedido": {
+      "title": "Pedido",
+      "description": "Orden de envío o compra",
+      "type": "object",
+      "properties": {
+        "cliente_id": { "type": "string", "description": "ID del cliente que solicita" },
+        "cliente_nombre": { "type": "string", "description": "Nombre del cliente" },
+        "cliente_telefono": { "type": "string", "description": "Teléfono del cliente" },
+        "tipo": { "type": "string", "enum": ["compra", "recolección"], "description": "Tipo de servicio" },
+        "descripcion": { "type": "string", "description": "Detalles del pedido" },
+        "ubicacion_recogida": { "type": "object", "description": "Dirección y coordenadas de origen" },
+        "ubicacion_entrega": { "type": "object", "description": "Dirección y coordenadas de destino" },
+        "estado": { "type": "string", "enum": ["disponible", "asignado", "en_camino", "entregado"], "description": "Estado actual" },
+        "motorizado_id": { "type": "string", "description": "ID del repartidor asignado" },
+        "motorizado_nombre": { "type": "string", "description": "Nombre del repartidor" },
+        "motorizado_telefono": { "type": "string", "description": "Teléfono del repartidor" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Fecha de creación" }
+      },
+      "required": ["cliente_id", "tipo", "descripcion", "estado", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/usuarios/{userId}": {
+      "schema": "Usuario",
+      "description": "Colección de perfiles de usuario"
+    },
+    "/pedidos/{pedidoId}": {
+      "schema": "Pedido",
+      "description": "Colección de órdenes de servicio"
+    }
+  }
+}

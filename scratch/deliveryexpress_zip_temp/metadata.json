@@ -1,0 +1,5 @@
+{
+  "name": "DeliveryExpress",
+  "description": "Aplicación de delivery pequeña y eficiente para mensajería local.",
+  "requestFramePermissions": ["geolocation"]
+}

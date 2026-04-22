@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageCircle, X, Send, User, ChevronLeft } from 'lucide-react';
+import { MessageCircle, X, Send, User, ChevronLeft, ShieldCheck } from 'lucide-react';
 import { Usuario, Mensaje, Pedido } from '../types';
 import { listenMensajes, enviarMensaje, listenUsuarios, listenMisPedidosCliente, listenMisPedidosMotorizado } from '../services/pedidoService';
 import { format } from 'date-fns';
@@ -137,13 +137,13 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ currentUser }) => {
                   {isMotorizado && (
                     <button
                       onClick={() => {
-                        setSelectedChatId(currentUser.uid);
+                        setSelectedChatId('admin'); // ID reservado para soporte
                         setSelectedChatName('Soporte Admin');
                       }}
                       className="w-full flex items-center gap-3 p-3 hover:bg-white rounded-xl transition-colors border border-transparent hover:border-gray-100"
                     >
                       <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center font-bold">
-                        S
+                        <ShieldCheck size={20} />
                       </div>
                       <div className="text-left flex-1">
                         <p className="font-bold text-gray-900 text-sm">Soporte Admin</p>
@@ -184,19 +184,21 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ currentUser }) => {
                 <div className="flex-1 p-4 space-y-4">
                   {mensajes.map((msg) => {
                     const remitenteId = msg.remitenteId || (msg as any).remitente_id;
+                    const remitenteNombre = msg.remitenteNombre || (msg as any).remitente_nombre;
                     const isMe = remitenteId === currentUser.uid;
+                    const timestamp = msg.timestamp || (msg as any).created_at;
+
                     return (
                       <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                         <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${isMe ? 'bg-orange-500 text-white rounded-br-sm' : 'bg-white text-gray-800 rounded-bl-sm shadow-sm border border-gray-100'}`}>
-                          {!isMe && <p className="text-[10px] font-bold mb-1 opacity-50">{msg.remitenteNombre || (msg as any).remitente_nombre}</p>}
+                          {!isMe && <p className="text-[10px] font-bold mb-1 opacity-50">{remitenteNombre}</p>}
                           <p className="text-sm">{msg.texto}</p>
                         </div>
                         <span className="text-[10px] text-gray-400 mt-1">
                           {(() => {
                             try {
-                              const ts = msg.timestamp || (msg as any).created_at;
-                              if (!ts) return '';
-                              const d = (ts as any).toDate ? (ts as any).toDate() : new Date(ts);
+                              if (!timestamp) return '';
+                              const d = new Date(timestamp);
                               return isNaN(d.getTime()) ? '' : format(d, 'HH:mm', { locale: es });
                             } catch (e) { return ''; }
                           })()}

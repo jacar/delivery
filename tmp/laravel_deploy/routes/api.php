@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\MotoTaxiController;
+use App\Http\Controllers\Api\NotificationController;
 
 // Autenticación (Reemplazo de Firebase Auth)
 Route::post('/register', [AuthController::class, 'register']);
@@ -45,6 +46,11 @@ Route::get('/mototaxi-tarifas', [MotoTaxiController::class, 'index']);
 Route::post('/mototaxi-tarifas', [MotoTaxiController::class, 'store']);
 Route::put('/mototaxi-tarifas/{id}', [MotoTaxiController::class, 'update']);
 Route::delete('/mototaxi-tarifas/{id}', [MotoTaxiController::class, 'destroy']);
+
+// Notificaciones
+Route::get('/notifications', [NotificationController::class, 'index']);
+Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+Route::delete('/notifications', [NotificationController::class, 'clearAll']);
 
 // =========================================================================
 // RUTA DE REPARACIÓN INTEGRAL (EJECUTAR UNA VEZ EN PRODUCCIÓN)
@@ -138,7 +144,27 @@ Route::get('/repair-all', function () {
         $results['tariffs_error'] = 'Error en tabla tarifas: ' . $e->getMessage();
     }
 
-    // 4. LIMPIEZA DE CACHÉ
+    // 4. CREAR TABLA NOTIFICACIONES
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            \Illuminate\Support\Facades\Schema::create('notifications', function ($table) {
+                $table->id();
+                $table->string('user_id');
+                $table->string('titulo');
+                $table->text('mensaje');
+                $table->string('tipo')->default('sistema');
+                $table->boolean('leido')->default(false);
+                $table->timestamps();
+            });
+            $results['notifications_table'] = 'Tabla notifications CREADA.';
+        } else {
+            $results['notifications_table'] = 'Tabla notifications ya EXISTE.';
+        }
+    } catch (\Exception $e) {
+        $results['notifications_error'] = 'Error en tabla notificaciones: ' . $e->getMessage();
+    }
+
+    // 5. LIMPIEZA DE CACHÉ
     try {
         \Illuminate\Support\Facades\Artisan::call('cache:clear');
         \Illuminate\Support\Facades\Artisan::call('config:clear');
@@ -149,7 +175,7 @@ Route::get('/repair-all', function () {
 
     return response()->json([
         'success' => true,
-        'mensaje' => '¡Sistema reparado integralmente para el nuevo dominio!',
+        'mensaje' => '¡Sistema reparado integralmente para el nuevo dominio! (v2.1 - Notifications Active)',
         'dominio_detectado' => url('/'),
         'detalles' => $results
     ]);

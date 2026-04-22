@@ -4,6 +4,7 @@ import Auth from './components/Auth';
 import ProfileModal from './components/ProfileModal';
 import NotificationsModal from './components/NotificationsModal';
 import LegalModal from './components/LegalModal';
+import { getNotifications } from './services/notificationService';
 import MobileNav from './components/MobileNav';
 import { Toaster, toast } from 'sonner';
 import { LogOut, HelpCircle, Bell, Settings, ShieldCheck } from 'lucide-react';
@@ -36,6 +37,7 @@ export default function App() {
   const [activeMobileTab, setActiveMobileTab] = useState('home');
   const [showLegal, setShowLegal] = useState(false);
   const [legalTab, setLegalTab] = useState<'about' | 'terms' | 'privacy' | 'returns'>('about');
+  const [hasUnread, setHasUnread] = useState(false);
 
   const openLegal = (tab: 'about' | 'terms' | 'privacy' | 'returns') => {
     setLegalTab(tab);
@@ -47,6 +49,24 @@ export default function App() {
       setActiveMobileTab('pedidos');
     }
   }, [userData, activeMobileTab]);
+
+  // Polling para notificaciones no leídas
+  useEffect(() => {
+    if (!userData?.uid) return;
+
+    const checkNotifications = async () => {
+      try {
+        const notifs = await getNotifications(userData.uid);
+        setHasUnread(notifs.some(n => !n.leido));
+      } catch (e) {
+        console.error('Error checking notifications:', e);
+      }
+    };
+
+    checkNotifications();
+    const interval = setInterval(checkNotifications, 15000); // Cada 15s
+    return () => clearInterval(interval);
+  }, [userData?.uid]);
 
   const handleSignOut = () => {
     logout();
@@ -176,7 +196,9 @@ export default function App() {
                   className="p-2.5 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all relative"
                 >
                   <Bell size={20} />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border-2 border-white" />
+                  {hasUnread && (
+                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-orange-500 rounded-full border-2 border-white" />
+                  )}
                 </button>
                 <button
                   onClick={handleSignOut}
@@ -274,10 +296,11 @@ export default function App() {
         />
       )}
       
-      {showNotifications && (
+      {showNotifications && userData && (
         <NotificationsModal 
           isOpen={showNotifications} 
           onClose={() => setShowNotifications(false)} 
+          userId={userData.uid}
         />
       )}
       {userData && (

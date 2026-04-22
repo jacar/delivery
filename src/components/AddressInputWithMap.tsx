@@ -27,27 +27,44 @@ export default function AddressInputWithMap({
   const [showMap, setShowMap] = useState(false);
   const [coords, setCoords] = useState<{lat: number, lng: number} | null>(initialCoords || null);
   const [resolved, setResolved] = useState(!!initialCoords);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
 
   const handleSearch = async () => {
     if (!value || value.length < 3) return;
     setLoading(true);
-    const result = await geocodeAddress(value);
+    setSuggestions([]);
+    
+    // El servicio ahora devuelve un array de resultados
+    const results = await geocodeAddress(value);
     setLoading(false);
     
-    if (result) {
-      setCoords({ lat: result.lat, lng: result.lng });
-      onLocationResolved(result.lat, result.lng);
-      setResolved(true);
-      setShowMap(true);
+    if (results && results.length > 0) {
+      if (results.length === 1) {
+        // Si hay uno solo, lo seleccionamos directamente
+        selectSuggestion(results[0]);
+      } else {
+        // Si hay varios, mostramos sugerencias
+        setSuggestions(results);
+        setShowMap(false); // Ocultamos el mapa temporalmente para ver la lista
+      }
     } else {
-      // Si no se encuentra, mostramos un mapa por defecto cerca de la posición del usuario
-      // para que pueda marcar manualmente
+      // Si no se encuentra, default fallback cerca de Mene Grande
       if (!coords) {
-        setCoords({ lat: 10.4806, lng: -66.9036 }); // Default fallback
+        setCoords({ lat: 9.8159, lng: -70.9324 }); 
       }
       setShowMap(true);
       setResolved(false);
+      setSuggestions([]);
     }
+  };
+
+  const selectSuggestion = (result: any) => {
+    setCoords({ lat: result.lat, lng: result.lng });
+    onLocationResolved(result.lat, result.lng);
+    onChange(result.display_name); // Actualizamos el input con el nombre exacto
+    setResolved(true);
+    setShowMap(true);
+    setSuggestions([]);
   };
 
   const handleLocationChange = (lat: number, lng: number) => {
@@ -57,8 +74,9 @@ export default function AddressInputWithMap({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 relative">
       <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
+      
       <div className="relative group">
         <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-400 transition-colors">
           {icon || <MapPin size={20} />}
@@ -71,6 +89,7 @@ export default function AddressInputWithMap({
           onChange={(e) => {
             onChange(e.target.value);
             setResolved(false);
+            if (suggestions.length > 0) setSuggestions([]);
           }}
           onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearch())}
           required
@@ -92,6 +111,41 @@ export default function AddressInputWithMap({
           </button>
         </div>
       </div>
+
+      {/* Lista de Sugerencias */}
+      <AnimatePresence>
+        {suggestions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute z-[100] left-0 right-0 top-[calc(100%-8px)] mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+          >
+            <div className="p-3 bg-gray-50 border-b border-gray-100">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">¿Cuál es tu ubicación exacta?</p>
+            </div>
+            <div className="max-h-[200px] overflow-y-auto">
+              {suggestions.map((s, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => selectSuggestion(s)}
+                  className="w-full text-left px-5 py-4 hover:bg-orange-50 transition-colors flex items-start gap-3 border-b border-gray-50 last:border-0"
+                >
+                  <MapPin size={16} className="text-orange-400 mt-1 shrink-0" />
+                  <span className="text-xs font-bold text-gray-600 leading-snug">{s.display_name}</span>
+                </button>
+              ))}
+            </div>
+            <button 
+              onClick={() => setSuggestions([])}
+              className="w-full py-3 bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-600"
+            >
+              Cerrar sin seleccionar
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showMap && coords && (

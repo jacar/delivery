@@ -8,18 +8,26 @@ export interface GeocodeResult {
   display_name: string;
 }
 
-export const geocodeAddress = async (address: string): Promise<GeocodeResult | null> => {
+
+export const geocodeAddress = async (address: string): Promise<GeocodeResult[] | null> => {
   if (!address || address.length < 3) return null;
 
   try {
-    // Añadimos una restricción de país si es posible, o simplemente buscamos
-    // Nominatim requiere un User-Agent identificativo
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&addressdetails=1`;
+    // Bias results specifically for Mene Grande, Zulia, Venezuela
+    // Viewbox for Baralt/Mene Grande area: approx -71.2 to -70.7 Longitude, 9.6 to 10.0 Latitude
+    const viewbox = "-71.2,9.6,-70.7,10.0";
+    
+    // Add context if not present to avoid unrelated global results
+    let query = address;
+    if (!address.toLowerCase().includes('zulia') && !address.toLowerCase().includes('venezuela')) {
+      query = `${address}, Mene Grande, Zulia, Venezuela`;
+    }
+
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&countrycodes=ve&viewbox=${viewbox}&bounded=1&accept-language=es`;
     
     const response = await fetch(url, {
       headers: {
-        'Accept-Language': 'es',
-        'User-Agent': 'DeliveryExpressApp/1.0'
+        'User-Agent': 'DeliveryExpressApp/1.1'
       }
     });
 
@@ -28,11 +36,26 @@ export const geocodeAddress = async (address: string): Promise<GeocodeResult | n
     const data = await response.json();
 
     if (data && data.length > 0) {
-      return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
-        display_name: data[0].display_name
-      };
+      return data.map((item: any) => ({
+        lat: parseFloat(item.lat),
+        lng: parseFloat(item.lon),
+        display_name: item.display_name
+      }));
+    }
+
+    // Si con el query específico no hallamos nada, intentamos uno más amplio pero aún filtrado
+    if (query !== address) {
+      const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=3&addressdetails=1&countrycodes=ve&accept-language=es`;
+      const fallbackResponse = await fetch(fallbackUrl, { headers: { 'User-Agent': 'DeliveryExpressApp/1.1' } });
+      const fallbackData = await fallbackResponse.json();
+      
+      if (fallbackData && fallbackData.length > 0) {
+        return fallbackData.map((item: any) => ({
+          lat: parseFloat(item.lat),
+          lng: parseFloat(item.lon),
+          display_name: item.display_name
+        }));
+      }
     }
 
     return null;

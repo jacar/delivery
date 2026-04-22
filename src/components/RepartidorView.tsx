@@ -29,9 +29,29 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 const DriverIcon = L.divIcon({
   className: 'custom-div-icon',
-  html: `<div style="background-color: #f97316; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; items-center; justify-content: center; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M18.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M12 15h6"/><path d="M12 15H9"/><path d="M12 15V9.5"/><path d="M12 15 9 10"/><path d="M12 15l3-5"/><path d="M9 10c0-1.5 1-2.5 3-2.5s3 1 3 2.5"/><path d="M7.3 13h9.4"/></svg></div>`,
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
+  html: `
+    <div style="position: relative; width: 56px; height: 56px;">
+      <div style="position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px; background-color: #f97316; border-radius: 50%; opacity: 0.3; animation: pulse 2s infinite;"></div>
+      <div style="position: relative; width: 56px; height: 56px; background-color: #111827; border-radius: 50%; border: 4px solid #f97316; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: #f97316;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7" cy="18" r="2"/>
+          <circle cx="18" cy="18" r="2"/>
+          <path d="M12 18V9c0-1-1-2-2-2H8l-5 5v4h3"/>
+          <rect x="14" y="6" width="6" height="6" rx="1" fill="currentColor" fill-opacity="0.2"/>
+          <path d="M16 18V13l-4-4"/>
+        </svg>
+      </div>
+      <style>
+        @keyframes pulse {
+          0% { transform: scale(1); opacity: 0.4; }
+          70% { transform: scale(1.3); opacity: 0; }
+          100% { transform: scale(1); opacity: 0; }
+        }
+      </style>
+    </div>
+  `,
+  iconSize: [56, 56],
+  iconAnchor: [28, 28],
 });
 
 const isValidCoord = (lat: any, lng: any): boolean => {
@@ -293,12 +313,32 @@ export default function RepartidorView({ userData, activeTab: propActiveTab }: R
                   {misPedidos.filter(p => p.estado !== 'entregado').map(pedido => (
                     <React.Fragment key={pedido.id}>
                       {pedido.ubicacion_recogida && isValidCoord(pedido.ubicacion_recogida.lat, pedido.ubicacion_recogida.lng) && (
-                        <Marker position={[Number(pedido.ubicacion_recogida.lat), Number(pedido.ubicacion_recogida.lng)]}>
+                        <Marker 
+                          position={[Number(pedido.ubicacion_recogida.lat), Number(pedido.ubicacion_recogida.lng)]}
+                          icon={L.divIcon({
+                            html: `<div style="width: 32px; height: 32px; background-color: #f97316; border-radius: 50%; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; color: white;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M12 18V9c0-1-1-2-2-2H8l-5 5v4h3"/><path d="M16 18V13l-4-4"/></svg>
+                                   </div>`,
+                            className: '',
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16]
+                          })}
+                        >
                           <Popup>Punto de Recogida: {pedido.descripcion}</Popup>
                         </Marker>
                       )}
                       {pedido.ubicacion_entrega && isValidCoord(pedido.ubicacion_entrega.lat, pedido.ubicacion_entrega.lng) && (
-                        <Marker position={[Number(pedido.ubicacion_entrega.lat), Number(pedido.ubicacion_entrega.lng)]}>
+                        <Marker 
+                          position={[Number(pedido.ubicacion_entrega.lat), Number(pedido.ubicacion_entrega.lng)]}
+                          icon={L.divIcon({
+                            html: `<div style="width: 32px; height: 32px; background-color: #3b82f6; border-radius: 50%; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; color: white;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M12 18V9c0-1-1-2-2-2H8l-5 5v4h3"/><path d="M16 18V13l-4-4"/></svg>
+                                   </div>`,
+                            className: '',
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16]
+                          })}
+                        >
                           <Popup>Punto de Entrega: {pedido.descripcion}</Popup>
                         </Marker>
                       )}

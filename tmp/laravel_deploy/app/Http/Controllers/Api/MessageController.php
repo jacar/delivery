@@ -50,11 +50,51 @@ class MessageController extends Controller {
             });
         }
 
-        // Generar un UUID si la BD en producción no tiene el auto_increment habilitado
-        $data['id'] = (string) \Illuminate\Support\Str::uuid();
+        // El ID será generado por AUTO_INCREMENT en la DB
         $data['created_at'] = now();
+        $data['updated_at'] = now();
 
         DB::table('messages')->insert($data);
+
+        // --- DISPARAR NOTIFICACIÓN AL DESTINATARIO ---
+        try {
+            $chatId = $data['chatId'];
+            $remitenteId = $data['remitenteId'];
+            $remitenteNombre = $data['remitenteNombre'];
+            $destinatarioId = null;
+
+            // 1. Intentar encontrar si el chatId es un Pedido
+            $order = DB::table('orders')->where('id', $chatId)->first();
+            if ($order) {
+                // Si el remitente es el cliente, notificar al motorizado
+                if ($remitenteId === $order->cliente_id) {
+                    $destinatarioId = $order->motorizado_id;
+                } else {
+                    $destinatarioId = $order->cliente_id;
+                }
+            } else {
+                // 2. Si no es un pedido, ver si el remitente es un usuario y el chat es con admin
+                // En el flujo actual, si un motorizado escribe a soporte, el admin recibe (no implementado aún notif a admin)
+                // Si el admin escribe a un motorizado, el chatId suele ser el UID del motorizado
+                if ($remitenteId === 'admin_uid' || $remitenteId === 'admin') {
+                     $destinatarioId = $chatId; // El chatId es el destinatario (motorizado)
+                }
+            }
+
+            if ($destinatarioId && $destinatarioId !== $remitenteId) {
+                DB::table('notifications')->insert([
+                    'user_id' => $destinatarioId,
+                    'titulo' => "Nuevo mensaje de $remitenteNombre",
+                    'mensaje' => $data['texto'],
+                    'tipo' => 'mensaje',
+                    'leido' => false,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Ignorar errores en notificación para no bloquear el envío del mensaje
+        }
 
         return response()->json(['success' => true]);
     }

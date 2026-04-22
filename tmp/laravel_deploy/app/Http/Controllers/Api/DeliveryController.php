@@ -31,6 +31,28 @@ class DeliveryController extends Controller {
         $data['created_at'] = now();
         $data['updated_at'] = now();
         DB::table('orders')->insert($data);
+
+        // --- NOTIFICAR A ADMINISTRADORES SOBRE NUEVO PEDIDO ---
+        try {
+            $admins = DB::table('users')->where('rol', 'admin')->get();
+            foreach ($admins as $admin) {
+                $targetId = $admin->uid ?? $admin->id;
+                if ($targetId) {
+                    DB::table('notifications')->insert([
+                        'user_id' => $targetId,
+                        'titulo' => "¡Nuevo Pedido Recibido!",
+                        'mensaje' => "Se ha creado un nuevo pedido de " . ($data['cliente_nombre'] ?? 'un cliente') . ".",
+                        'tipo' => 'sistema',
+                        'leido' => false,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            // Ignorar fallos en notificaciones para no bloquear la creación del pedido
+        }
+
         return response()->json(['id' => $data['id'], 'success' => true]);
     }
     public function updateStatus(Request $request, $id) {
@@ -57,6 +79,42 @@ class DeliveryController extends Controller {
                     ->where('uid', $motorizadoId)
                     ->orWhere('id', $motorizadoId)
                     ->update(['ocupado' => true, 'updated_at' => now()]);
+            }
+        }
+
+        // --- SISTEMA DE NOTIFICACIONES ---
+        $order = DB::table('orders')->where('id', $id)->first();
+        if ($order) {
+            $titulo = "Actualización de Pedido";
+            $mensaje = "";
+            $userId = $order->cliente_id;
+
+            switch ($estado) {
+                case 'asignado':
+                    $motorizado = $request->input('motorizado_nombre', 'Un repartidor');
+                    $mensaje = "Tu pedido ha sido asignado a $motorizado.";
+                    break;
+                case 'en_camino':
+                    $mensaje = "¡Tu pedido está en camino! Puedes seguirlo en el mapa.";
+                    break;
+                case 'entregado':
+                    $mensaje = "¡Tu pedido ha sido entregado! Gracias por confiar en nosotros.";
+                    break;
+                case 'cancelado':
+                    $mensaje = "Tu pedido ha sido cancelado.";
+                    break;
+            }
+
+            if ($mensaje) {
+                DB::table('notifications')->insert([
+                    'user_id' => $userId,
+                    'titulo' => $titulo,
+                    'mensaje' => $mensaje,
+                    'tipo' => 'pedido',
+                    'leido' => false,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
             }
         }
 

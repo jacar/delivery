@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: usuarios
+    // Document ID: {userId} (matches Firebase Auth UID)
+    // Fields:
+    //   - nombre: string (required)
+    //   - rol: string (required, 'admin' | 'motorizado' | 'cliente')
+    //   - fcmToken: string (optional)
+    //   - telefono: string (optional)
+    //   - tipoVehiculo: string (optional, for drivers)
+    //   - documentoId: string (optional, for drivers)
+    //   - fotoUrl: string (optional, for drivers)
+    //
+    // Collection: pedidos
+    // Document ID: {pedidoId}
+    // Fields:
+    //   - cliente_id: string (required)
+    //   - tipo: string (required, 'compra' | 'recolección')
+    //   - descripcion: string (required)
+    //   - ubicacion_recogida: map (optional)
+    //   - ubicacion_entrega: map (optional)
+    //   - estado: string (required, 'disponible' | 'asignado' | 'en_camino' | 'entregado')
+    //   - motorizado_id: string (optional)
+    //   - timestamp: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().rol == role;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (request.auth.token.email == "johnnyelbravoleyenda@gmail.com" && request.auth.token.email_verified == true) ||
+        (exists(/databases/$(database)/documents/usuarios/$(request.auth.uid)) && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'admin')
+      );
+    }
+
+    function isValidUsuario(data) {
+      return data.nombre is string && data.nombre.size() > 0 && data.nombre.size() < 100 &&
+             data.rol in ['admin', 'motorizado', 'cliente'] &&
+             (!('telefono' in data) || (data.telefono is string && data.telefono.size() < 20)) &&
+             (!('tipoVehiculo' in data) || data.tipoVehiculo is string) &&
+             (!('documentoId' in data) || data.documentoId is string) &&
+             (!('fotoUrl' in data) || data.fotoUrl is string);
+    }
+
+    function isValidPedido(data) {
+      return data.cliente_id is string &&
+             data.tipo in ['compra', 'recolección'] &&
+             data.descripcion is string && data.descripcion.size() < 500 &&
+             data.estado in ['disponible', 'asignado', 'en_camino', 'entregado'] &&
+             data.timestamp is timestamp &&
+             (!('cliente_nombre' in data) || data.cliente_nombre is string) &&
+             (!('cliente_telefono' in data) || data.cliente_telefono is string) &&
+             (!('motorizado_id' in data) || data.motorizado_id is string) &&
+             (!('motorizado_nombre' in data) || data.motorizado_nombre is string) &&
+             (!('motorizado_telefono' in data) || data.motorizado_telefono is string) &&
+             (!('aceptado_por_motorizado' in data) || data.aceptado_por_motorizado is bool) &&
+             (!('ubicacion_actual' in data) || (data.ubicacion_actual.lat is number && data.ubicacion_actual.lng is number)) &&
+             (!('last_update' in data) || data.last_update is timestamp);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /usuarios/{userId} {
+      // Los usuarios pueden leer su propio perfil. Los admins pueden leer todos.
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Crear perfil: el usuario debe ser el dueño o ser un administrador
+      allow create: if (isOwner(userId) || isAdmin()) && isValidUsuario(request.resource.data);
+      
+      // Actualizar perfil: el dueño puede actualizar o un administrador
+      allow update: if (isOwner(userId) || isAdmin()) && isValidUsuario(request.resource.data);
+    }
+
+    match /pedidos/{pedidoId} {
+      // Lectura:
+      // - Clientes ven sus propios pedidos.
+      // - Motorizados ven pedidos disponibles o los que tienen asignados.
+      // - Admins ven todos.
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.cliente_id == request.auth.uid ||
+        (hasRole('motorizado') && (resource.data.estado == 'disponible' || resource.data.motorizado_id == request.auth.uid))
+      );
+
+      // Crear: Solo clientes pueden crear pedidos para sí mismos.
+      allow create: if isAuthenticated() && 
+                    isValidPedido(request.resource.data) && 
+                    request.resource.data.cliente_id == request.auth.uid &&
+                    request.resource.data.estado == 'disponible';
+
+      // Actualizar:
+      // - El cliente puede cancelar (si está disponible) o actualizar detalles.
+      // - El motorizado puede "tomar" el pedido (cambiar de disponible a asignado y ponerse como motorizado_id).
+      // - El motorizado asignado puede cambiar el estado a 'en_camino' o 'entregado' y actualizar su ubicación.
+      // - Admins pueden todo.
+      allow update: if isAuthenticated() && isValidPedido(request.resource.data) && (
+        isAdmin() ||
+        (isOwner(resource.data.cliente_id) && request.resource.data.estado in ['disponible', 'entregado']) ||
+        (hasRole('motorizado') && (
+          // Tomar pedido
+          (resource.data.estado == 'disponible' && 
+           request.resource.data.estado == 'asignado' && 
+           request.resource.data.motorizado_id == request.auth.uid) ||
+          // Actualizar estado asignado o aceptar pedido
+          (resource.data.motorizado_id == request.auth.uid && (
+            (resource.data.estado == 'asignado' && request.resource.data.estado == 'asignado' && request.resource.data.aceptado_por_motorizado == true) ||
+            (request.resource.data.estado in ['en_camino', 'entregado']) ||
+            // Actualizar ubicación GPS
+            (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ubicacion_actual', 'last_update']))
+          ))
+        ))
+      );
+    }
+  }
+}

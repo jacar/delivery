@@ -23,34 +23,71 @@ L.Marker.prototype.options.icon = DefaultIcon;
 const getDriverIcon = (vehicleType?: string) => {
   const isCar = vehicleType?.toLowerCase().includes('auto') || vehicleType?.toLowerCase().includes('carro');
   
-  const bikeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"/></svg>`;
+  // Moto SVG más detallada con caja de delivery
+  const bikeSvg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="7" cy="18" r="2"/>
+      <circle cx="18" cy="18" r="2"/>
+      <path d="M12 18V9c0-1-1-2-2-2H8l-5 5v4h3"/>
+      <rect x="14" y="6" width="6" height="6" rx="1" fill="currentColor" fill-opacity="0.2"/>
+      <path d="M16 18V13l-4-4"/>
+    </svg>
+  `;
   
   const carSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>`;
-
+  
   return L.divIcon({
-    html: `<div class="w-10 h-10 bg-orange-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white">
-            ${isCar ? carSvg : bikeSvg}
-           </div>`,
+    html: `
+      <div style="position: relative; width: 56px; height: 56px;">
+        <div style="position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px; background-color: #f97316; border-radius: 50%; opacity: 0.3; animation: pulse 2s infinite;"></div>
+        <div style="position: relative; width: 56px; height: 56px; background-color: #111827; border-radius: 50%; border: 4px solid #f97316; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: #f97316;">
+          ${isCar ? carSvg : bikeSvg}
+        </div>
+        <style>
+          @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.4; }
+            70% { transform: scale(1.3); opacity: 0; }
+            100% { transform: scale(1); opacity: 0; }
+          }
+        </style>
+      </div>
+    `,
     className: '',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
+    iconSize: [56, 56],
+    iconAnchor: [28, 28]
   });
 };
 
-// Custom icon for the destination
+// Custom icon for the destination (now as a Moto Icon)
 const destinationIcon = L.divIcon({
-  html: `<div class="w-10 h-10 bg-blue-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-         </div>`,
+  html: `
+    <div style="position: relative; width: 44px; height: 44px;">
+      <div style="position: absolute; inset: -2px; background-color: #3b82f6; border-radius: 50%; opacity: 0.2;"></div>
+      <div style="position: relative; width: 44px; height: 44px; background-color: white; border-radius: 50%; border: 3px solid #3b82f6; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; color: #3b82f6;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7" cy="18" r="2"/>
+          <circle cx="18" cy="18" r="2"/>
+          <path d="M12 18V9c0-1-1-2-2-2H8l-5 5v4h3"/>
+          <path d="M16 18V13l-4-4"/>
+        </svg>
+      </div>
+    </div>
+  `,
   className: '',
-  iconSize: [40, 40],
-  iconAnchor: [20, 40]
+  iconSize: [44, 44],
+  iconAnchor: [22, 22]
 });
 
 // Custom icon for the user
 const userIcon = L.divIcon({
-  html: `<div class="w-8 h-8 bg-blue-400 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white">
-          <div class="w-2 h-2 bg-white rounded-full animate-ping"></div>
+  html: `<div style="width: 32px; height: 32px; background-color: #60a5fa; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; color: white;">
+          <div style="width: 8px; height: 8px; background-color: white; border-radius: 50%; animation: ping 1.5s infinite;"></div>
+          <style>
+            @keyframes ping {
+              0% { transform: scale(1); opacity: 1; }
+              100% { transform: scale(3); opacity: 0; }
+            }
+          </style>
          </div>`,
   className: '',
   iconSize: [32, 32],
@@ -95,7 +132,7 @@ const TrackingMap = memo(({ pedido, userPos, driverVehicleType, isPicker, onLoca
   const clientPos = userPos && isValidCoord(userPos.lat, userPos.lng)
     ? [Number(userPos.lat), Number(userPos.lng)] as [number, number] : null;
   
-  const defaultCenter = initialCenter || driverPos || clientPos || destPos || [10.4806, -66.9036];
+  const defaultCenter = initialCenter || driverPos || clientPos || destPos || [9.8159, -70.9324]; // Mene Grande Default
 
   const markerEvents = {
     dragend(e: any) {
