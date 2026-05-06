@@ -1,0 +1,21 @@
+{
+  "name": "Envío Express",
+  "short_name": "EnvíoEx",
+  "description": "Delivery local rápido y seguro",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/delivery/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/delivery/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

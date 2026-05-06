@@ -1,0 +1,10 @@
+[21-Apr-2026 02:03:57 America/Caracas] PHP Warning:  require(/home2/delivery/public_html/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home2/delivery/public_html/public/index.php on line 13
+[21-Apr-2026 02:03:57 America/Caracas] PHP Fatal error:  Uncaught Error: Failed opening required '/home2/delivery/public_html/public/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php82/root/usr/share/pear') in /home2/delivery/public_html/public/index.php:13
+Stack trace:
+#0 {main}
+  thrown in /home2/delivery/public_html/public/index.php on line 13
+[29-Apr-2026 17:31:08 America/Caracas] PHP Warning:  require(/home2/delivery/public_html/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home2/delivery/public_html/public/index.php on line 13
+[29-Apr-2026 17:31:08 America/Caracas] PHP Fatal error:  Uncaught Error: Failed opening required '/home2/delivery/public_html/public/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php82/root/usr/share/pear') in /home2/delivery/public_html/public/index.php:13
+Stack trace:
+#0 {main}
+  thrown in /home2/delivery/public_html/public/index.php on line 13
